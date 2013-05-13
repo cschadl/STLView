@@ -160,8 +160,8 @@ void STLDrawArea::resize(GLuint width, GLuint height)
 	double bottom = c_y - diam;
 	double top = c_y + diam;
 
-	const double z_near = -2.0 * diam;
-	const double z_far = 2.0 * diam;
+	const double z_near = -2.0 * (m_camera.GetViewDistance() + diam);
+	const double z_far = 2.0 * (m_camera.GetViewDistance() + diam);
 
 	if (aspect < 1.0)
 	{
