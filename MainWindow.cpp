@@ -13,7 +13,11 @@
 #include <fstream>
 #include <sstream>
 
+#ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
+#else
+const Glib::ustring MainWindow::APP_NAME = "STLview - Debug";
+#endif
 
 MainWindow::MainWindow()
 : m_stlDrawArea(new STLDrawArea)
@@ -83,8 +87,11 @@ void MainWindow::do_file_open_dialog()
 	fcd.add_filter(all_files);
 
 	const int response = fcd.run();
+	const Glib::ustring filename = fcd.get_filename();
+
+	fcd.hide();
 	if (response == Gtk::RESPONSE_OK)
-		file_open(fcd.get_filename());
+		file_open(filename);
 }
 
 void MainWindow::set_window_title(const Glib::ustring& current_fn)
@@ -101,10 +108,11 @@ void MainWindow::file_open(const Glib::ustring& filename)
 	try
 	{
 		std::ifstream in_stream;
-		in_stream.open(filename.c_str());
+		in_stream.open(filename.c_str(), std::ifstream::in);
 
-//		if (!in_stream.is_open() || !in_stream.good());
-//			throw std::runtime_error("Error opening file");
+		// Why is the instream not open / good?
+		//if (!in_stream.is_open() || !in_stream.good());
+		//	throw std::runtime_error("Error opening file");
 
 		stl_import importer(in_stream);
 		mesh = boost::shared_ptr<triangle_mesh>(new triangle_mesh(importer.get_facets()));
@@ -121,6 +129,8 @@ void MainWindow::file_open(const Glib::ustring& filename)
 	// We should have a mesh now
 	if (!mesh)
 		throw std::runtime_error("no mesh (weird)");
+
+	set_window_title(filename);
 
 	m_mesh = mesh;
 	m_stlDrawArea->DrawMesh(*m_mesh);

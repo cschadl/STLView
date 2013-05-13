@@ -21,6 +21,7 @@ OUTDIR_DEBUG=Debug
 OUTOBJS_DEBUG=$(addprefix $(OUTDIR_DEBUG)/, $(OBJS))
 OUTEXE_DEBUG=$(OUTDIR_DEBUG)/$(EXECUTABLE)
 CFLAGS_DEBUG=-Wall -ggdb3
+CPPFGLAS_DEBUG=-DDEBUG
 
 ################################
 ## Release config
@@ -63,12 +64,12 @@ $(OUTEXE_DEBUG): $(OUTOBJS_DEBUG)
 	
 # Rule for STLIMPORT stuff
 $(addprefix $(OUTDIR_DEBUG)/, $(STLIMPORTOBJS)): $(OUTDIR_DEBUG)/%.o : $(STLIMPORT)/%.cpp
-	$(CXX) -c $(CFLAGS_DEBUG) $(INCLUDE) -o $@ $<
+	$(CXX) -c $(CFLAGS_DEBUG) $(CPPFLAGS_DEBUG) $(INCLUDE) -o $@ $<
 	$(CXX) -MM $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR_DEBUG)\/$$&/' > $(OUTDIR_DEBUG)/$*.d
 
 ## Default rule
 $(OUTDIR_DEBUG)/%.o: %.cpp
-	$(CXX) -c $(CFLAGS_DEBUG) $(PKGFLAGS) $(INCLUDE) -o $@ $<
+	$(CXX) -c $(CFLAGS_DEBUG) $(CPPFLAGS_DEBUG) $(PKGFLAGS) $(INCLUDE) -o $@ $<
 	$(CXX) -MM $(PKGFLAGS) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR_DEBUG)\/$$&/' > $(OUTDIR_DEBUG)/$*.d
 
 # This works for some reason

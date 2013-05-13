@@ -18,6 +18,7 @@
 #include "GLCamera.h"
 
 class triangle_mesh;
+class mesh_facet;
 
 class STLDrawArea : public Gtk::GL::DrawingArea
 {
@@ -41,6 +42,8 @@ public:
 	void DrawMesh(const triangle_mesh& mesh);
 
 protected:
+	static bool is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2);
+
 	// Helper function for getting the trackball point given the X, Y screen coordinates
 	maths::vector3f get_trackball_point(int x, int y) const;
 	maths::vector2f get_drag_point(int x, int y) const;

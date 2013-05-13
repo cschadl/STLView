@@ -8,6 +8,7 @@
 #include "STLDrawArea.h"
 #include "triangle_mesh.h"
 #include <assert.h>
+#include <boost/bind.hpp>
 
 using Glib::RefPtr;
 using Gdk::GL::Drawable;
@@ -31,6 +32,14 @@ STLDrawArea::STLDrawArea()
 
 	// Set up events for mouse-down, mouse-up, mouse movement, and mouse scroll
 	add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK | Gdk::SCROLL_MASK);
+}
+
+//static
+bool STLDrawArea::is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2)
+{
+	const double tol = 1.0e-4;
+	const double cos_norms = f1->get_normal() * f2->get_normal();
+	return cos_norms < M_PI_4 - tol;
 }
 
 void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
@@ -59,14 +68,27 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 				std::vector<mesh_vertex_ptr> verts = facet->get_verts();
 
 				const vector3d& facet_normal = facet->get_normal();
-				glNormal3d(facet_normal.x(), facet_normal.y(), facet_normal.z());
+				// TODO - enable per-facet normal
 
 				assert(verts.size() == 3);
 				for (int i = 0 ; i < 3 ; i++)
 				{
-					const vector3d v_point = verts[i]->get_point();
-					//const vector3d v_normal = verts[i]->get_normal();	// TODO - option for per-vertex normals
-					//glNormal3d(v_normal.x(), v_normal.y(), v_normal.z());
+					mesh_vertex_ptr vert = verts[i];
+					const vector3d v_point = vert->get_point();
+					const vector3d v_normal = vert->get_normal();	// TODO - option for per-vertex normals
+
+					// If the vertex has any adjacent triangles with facet normals > 90 degrees
+					// from eachother, then just use the facet normal rather than the vertex normal.
+					std::vector<mesh_facet_ptr> vert_facets = vert->get_adjacent_facets();
+					std::vector<mesh_facet_ptr>::iterator sharp_neighbor =
+							std::find_if(vert_facets.begin(), vert_facets.end(),
+									boost::bind(&STLDrawArea::is_sharp_edge_boundary, facet, _1));
+
+					if (sharp_neighbor != vert_facets.end())
+						glNormal3d(facet_normal.x(), facet_normal.y(), facet_normal.z());	// found sharp edge
+					else
+						glNormal3d(v_normal.x(), v_normal.y(), v_normal.z());
+
 					glVertex3d(v_point.x(), v_point.y(), v_point.z());
 				}
 			}
