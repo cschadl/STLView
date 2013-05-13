@@ -17,8 +17,8 @@ using maths::vector3d;
 
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
-, m_mesh_display_id(-1)
 , m_zoom_factor(1.0f)
+, m_mesh_display_id(-1)
 {
 	// Initialize a double-buffered RGB visual
 	const Gdk::GL::ConfigMode mode = Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH | Gdk::GL::MODE_DOUBLE;
