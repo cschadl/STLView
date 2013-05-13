@@ -37,6 +37,7 @@ STLDrawArea::STLDrawArea()
 //static
 bool STLDrawArea::is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2)
 {
+	// TODO - Maybe this should only be for convex facet edges
 	const double tol = 1.0e-4;
 	const double cos_norms = f1->get_normal() * f2->get_normal();
 	return cos_norms < M_PI_4 - tol;
@@ -77,7 +78,7 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 					const vector3d v_point = vert->get_point();
 					const vector3d v_normal = vert->get_normal();	// TODO - option for per-vertex normals
 
-					// If the vertex has any adjacent triangles with facet normals > 90 degrees
+					// If the vertex has any adjacent triangles with facet normals > 45 degrees
 					// from eachother, then just use the facet normal rather than the vertex normal.
 					std::vector<mesh_facet_ptr> vert_facets = vert->get_adjacent_facets();
 					std::vector<mesh_facet_ptr>::iterator sharp_neighbor =
