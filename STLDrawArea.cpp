@@ -18,6 +18,7 @@ using maths::vector3d;
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
 , m_mesh_display_id(-1)
+, m_zoom_factor(1.0f)
 {
 	// Initialize a double-buffered RGB visual
 	const Gdk::GL::ConfigMode mode = Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH | Gdk::GL::MODE_DOUBLE;
@@ -174,7 +175,7 @@ void STLDrawArea::resize(GLuint width, GLuint height)
 	}
 
 	//const float view_dist = m_camera.GetViewDistance() == 0.0 ? 1.0 : m_camera.GetViewDistance();
-	glOrtho(left, right, bottom, top, z_near, z_far);
+	glOrtho(m_zoom_factor * left, m_zoom_factor * right, m_zoom_factor * bottom, m_zoom_factor * top, z_near, z_far);
 
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -237,7 +238,8 @@ void STLDrawArea::camera_pan(const vector2f& dxy)
 
 void STLDrawArea::camera_zoom(const float dz)
 {
-	m_camera.Zoom(dz);
+	//m_camera.Zoom(dz);
+	m_zoom_factor += dz;
 
 	// Orothographic projection needs a resize after zooming
 	resize(get_width(), get_height());

@@ -27,6 +27,7 @@ private:
 	maths::vector3f	m_last_track_pt;
 	maths::vector2f m_last_drag_pt;
 	GLfloat			m_obj_rot_matrix[16];
+	GLfloat			m_zoom_factor;
 	GLCamera		m_camera;
 	GLint			m_mesh_display_id;
 
