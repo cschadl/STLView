@@ -16,7 +16,7 @@
 #ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
 #else
-const Glib::ustring MainWindow::APP_NAME = "STLview - Debug";
+const Glib::ustring MainWindow::APP_NAME = "STLview (Debug)";
 #endif
 
 MainWindow::MainWindow()

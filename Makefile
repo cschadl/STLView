@@ -21,7 +21,7 @@ OUTDIR_DEBUG=Debug
 OUTOBJS_DEBUG=$(addprefix $(OUTDIR_DEBUG)/, $(OBJS))
 OUTEXE_DEBUG=$(OUTDIR_DEBUG)/$(EXECUTABLE)
 CFLAGS_DEBUG=-Wall -ggdb3
-CPPFGLAS_DEBUG=-DDEBUG
+CPPFLAGS_DEBUG=-DDEBUG
 
 ################################
 ## Release config
