@@ -12,12 +12,33 @@
 
 #include <fstream>
 #include <sstream>
+#include <exception>
 
 #ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
 #else
 const Glib::ustring MainWindow::APP_NAME = "STLview (Debug)";
 #endif
+
+ScopedWaitCursor::ScopedWaitCursor(Gtk::Widget& widget)
+: m_window(widget.get_window())
+{
+	if (!m_window)
+		throw std::runtime_error("Couldn't get Gdk::Window from widget!");
+
+	Gdk::Cursor wait_cursor(Gdk::WATCH);
+	m_window->set_cursor(wait_cursor);
+
+	while (Gtk::Main::events_pending())
+		Gtk::Main::iteration();	//???
+}
+
+ScopedWaitCursor::~ScopedWaitCursor()
+{
+	m_window->set_cursor();
+	while (Gtk::Main::events_pending())
+		Gtk::Main::iteration();
+}
 
 MainWindow::MainWindow()
 : m_stlDrawArea(new STLDrawArea)
@@ -89,7 +110,7 @@ void MainWindow::do_file_open_dialog()
 	const int response = fcd.run();
 	const Glib::ustring filename = fcd.get_filename();
 
-	fcd.hide();
+	fcd.hide_all();
 	if (response == Gtk::RESPONSE_OK)
 		file_open(filename);
 }
@@ -107,6 +128,8 @@ void MainWindow::file_open(const Glib::ustring& filename)
 	boost::shared_ptr<triangle_mesh> mesh;
 	try
 	{
+		ScopedWaitCursor wc(*this);
+
 		std::ifstream in_stream;
 		in_stream.open(filename.c_str(), std::ifstream::in);
 

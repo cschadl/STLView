@@ -19,6 +19,25 @@
 
 class triangle_mesh;
 
+/**	Displays a wait cursor for the given window until the object goes out of scope
+ *  Does Gtkmm not have this? */
+class ScopedWaitCursor
+{
+private:
+	// This window is obtained from the Gtk::Widget
+	// Must be "realizable"
+	Glib::RefPtr<Gdk::Window>	m_window;
+
+public:
+	/** Constructor.
+	 *  Sets the wait cursor for the given widget.
+	 *  @throws std::runtime_exception if the widget does not
+	 *  		have a Gtk::Window.
+	 */
+	ScopedWaitCursor(Gtk::Widget& widget);
+	~ScopedWaitCursor();
+};
+
 class MainWindow : public Gtk::Window
 {
 private:

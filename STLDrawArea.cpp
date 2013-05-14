@@ -50,6 +50,7 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 
 	m_mesh_display_id = glGenLists(1);
 	m_mesh_bbox = mesh.bbox();
+	m_zoom_factor = 1.0f;
 
 	// TODO - selectable color
 	const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};
