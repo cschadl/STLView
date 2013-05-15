@@ -125,11 +125,11 @@ void MainWindow::set_window_title(const Glib::ustring& current_fn)
 
 void MainWindow::file_open(const Glib::ustring& filename)
 {
+	ScopedWaitCursor wc(*this);
+
 	boost::shared_ptr<triangle_mesh> mesh;
 	try
 	{
-		ScopedWaitCursor wc(*this);
-
 		std::ifstream in_stream;
 		in_stream.open(filename.c_str(), std::ifstream::in);
 
