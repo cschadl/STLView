@@ -143,7 +143,8 @@ void MainWindow::file_open(const Glib::ustring& filename)
 	catch (std::exception& ex)
 	{
 		std::stringstream ss;
-		ss << "There was an error reading the STL file: " << ex.what();
+		ss << "There was an error reading the STL file: " << std::endl << ex.what();
+		std::cout << ss.str() << std::endl;
 
 		DoMessageBox("Error", ss.str().c_str());
 		return;

@@ -53,17 +53,18 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 	m_zoom_factor = 1.0f;
 
 	// TODO - selectable color
-	const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};
+	const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};	// TODO - adjustable alpha
 
 	glNewList(m_mesh_display_id, GL_COMPILE);
 	{
 		glShadeModel(GL_SMOOTH);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		std::vector<mesh_facet_ptr> mesh_facets = mesh.get_facets();
 
 		glBegin(GL_TRIANGLES);
 		{
-			glColor3fv(green);
 			for (std::vector<mesh_facet_ptr>::iterator fi = mesh_facets.begin() ; fi != mesh_facets.end() ; ++fi)
 			{
 				mesh_facet_ptr facet = *fi;
@@ -86,6 +87,7 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 							std::find_if(vert_facets.begin(), vert_facets.end(),
 									boost::bind(&STLDrawArea::is_sharp_edge_boundary, facet, _1));
 
+					glColor4fv(green);
 					if (sharp_neighbor != vert_facets.end())
 						glNormal3d(facet_normal.x(), facet_normal.y(), facet_normal.z());	// found sharp edge
 					else
@@ -212,6 +214,7 @@ void STLDrawArea::redraw()
 	gl_drawable->gl_begin(get_gl_context());
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
