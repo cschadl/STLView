@@ -24,6 +24,7 @@ STLDrawArea::STLDrawArea()
 	// Initialize a double-buffered RGB visual
 	const Gdk::GL::ConfigMode mode = Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH | Gdk::GL::MODE_DOUBLE;
 	RefPtr<Gdk::GL::Config> gl_config = Gdk::GL::Config::create(mode);
+
 	if (!gl_config)
 		throw std::runtime_error("Unable to create OpenGL display context!");
 
@@ -58,11 +59,10 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 	glNewList(m_mesh_display_id, GL_COMPILE);
 	{
 		glShadeModel(GL_SMOOTH);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		std::vector<mesh_facet_ptr> mesh_facets = mesh.get_facets();
 
+		glColor4fv(green);
 		glBegin(GL_TRIANGLES);
 		{
 			for (std::vector<mesh_facet_ptr>::iterator fi = mesh_facets.begin() ; fi != mesh_facets.end() ; ++fi)
@@ -87,7 +87,6 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 							std::find_if(vert_facets.begin(), vert_facets.end(),
 									boost::bind(&STLDrawArea::is_sharp_edge_boundary, facet, _1));
 
-					glColor4fv(green);
 					if (sharp_neighbor != vert_facets.end())
 						glNormal3d(facet_normal.x(), facet_normal.y(), facet_normal.z());	// found sharp edge
 					else
@@ -98,6 +97,29 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 			}
 		}
 		glEnd();
+
+		glLineWidth(2.5);
+		glEnable(GL_BLEND);
+		glBlendColor(0.0, 0.8, 0.2, 1.0);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_POLYGON_SMOOTH);
+		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+		for (std::vector<mesh_facet_ptr>::iterator fi = mesh_facets.begin() ; fi != mesh_facets.end() ; ++fi)
+		{
+			mesh_facet_ptr facet = *fi;
+			std::vector<mesh_vertex_ptr> verts = facet->get_verts();
+
+			glColor3d(0.0, 0.0, 0.0);
+			glBegin(GL_LINE_LOOP);
+			for (int i = 0 ; i < 3 ; i++)
+			{
+				glVertex3d(verts[i]->get_point().x(), verts[i]->get_point().y(), verts[i]->get_point().z());
+			}
+			glEnd();
+		}
+		glDisable(GL_BLEND);
 	}
 	glEndList();
 
@@ -214,7 +236,7 @@ void STLDrawArea::redraw()
 	gl_drawable->gl_begin(get_gl_context());
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClearColor(1.0, 1.0, 1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
