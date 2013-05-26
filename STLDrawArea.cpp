@@ -106,19 +106,25 @@ void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
 		glEnable(GL_POLYGON_SMOOTH);
 		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-		for (std::vector<mesh_facet_ptr>::iterator fi = mesh_facets.begin() ; fi != mesh_facets.end() ; ++fi)
-		{
-			mesh_facet_ptr facet = *fi;
-			std::vector<mesh_vertex_ptr> verts = facet->get_verts();
 
-			glColor3d(0.0, 0.0, 0.0);
-			glBegin(GL_LINE_LOOP);
-			for (int i = 0 ; i < 3 ; i++)
-			{
-				glVertex3d(verts[i]->get_point().x(), verts[i]->get_point().y(), verts[i]->get_point().z());
-			}
-			glEnd();
+		glBegin(GL_LINES);
+		std::vector<mesh_edge_ptr> mesh_edges = mesh.get_edges();
+		for (std::vector<mesh_edge_ptr>::iterator ei = mesh_edges.begin() ; ei != mesh_edges.end() ; ++ei)
+		{
+			mesh_edge_ptr edge = *ei;
+			const vector3d start_pt = edge->get_vertex()->get_point();
+			const vector3d end_pt = edge->get_end_vertex()->get_point();
+
+			if (!edge->is_lamina())
+				glColor3d(0.0, 0.0, 0.0);
+			else
+				glColor3d(1.0, 1.0, 0.0);
+
+			glVertex3d(start_pt.x(), start_pt.y(), start_pt.z());
+			glVertex3d(end_pt.x(), end_pt.y(), end_pt.z());
 		}
+		glEnd(); // GL_LINES
+
 		glDisable(GL_BLEND);
 	}
 	glEndList();
@@ -244,11 +250,13 @@ void STLDrawArea::redraw()
 	// Load "view" matrix onto GL_MODELVIEW stack
 	m_camera.GetMatrixForModelview();
 
+	glEnable(GL_CULL_FACE);
 	// Draw stuff
 	glPushMatrix();
 	glMultMatrixf(m_obj_rot_matrix);
 	glCallList(m_mesh_display_id);
 	glPopMatrix();
+	glDisable(GL_CULL_FACE);
 
 	assert(glGetError() == GL_NO_ERROR);
 
