@@ -6,20 +6,21 @@
  */
 
 #include "STLDrawArea.h"
+#include "DisplayObject.h"
 #include "triangle_mesh.h"
 #include <assert.h>
-#include <boost/bind.hpp>
 
 using Glib::RefPtr;
 using Gdk::GL::Drawable;
 using maths::vector3f;
 using maths::vector2f;
 using maths::vector3d;
+using boost::shared_ptr;
 
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
 , m_zoom_factor(1.0f)
-, m_mesh_display_id(-1)
+
 {
 	// Initialize a double-buffered RGB visual
 	const Gdk::GL::ConfigMode mode = Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH | Gdk::GL::MODE_DOUBLE;
@@ -35,99 +36,20 @@ STLDrawArea::STLDrawArea()
 	add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK | Gdk::SCROLL_MASK);
 }
 
-//static
-bool STLDrawArea::is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2)
+void STLDrawArea::DrawMesh(shared_ptr<triangle_mesh> mesh)
 {
-	// TODO - Maybe this should only be for convex facet edges
-	const double tol = 1.0e-4;
-	const double cos_norms = f1->get_normal() * f2->get_normal();
-	return cos_norms < M_PI_4 - tol;
-}
-
-void STLDrawArea::DrawMesh(const triangle_mesh& mesh)
-{
-	if (m_mesh_display_id >= 0)
-		glDeleteLists(m_mesh_display_id, 1);
-
-	m_mesh_display_id = glGenLists(1);
-	m_mesh_bbox = mesh.bbox();
 	m_zoom_factor = 1.0f;
 
+	glShadeModel(GL_SMOOTH);
+
 	// TODO - selectable color
-	const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};	// TODO - adjustable alpha
+	//const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};	// TODO - adjustable alpha
 
-	glNewList(m_mesh_display_id, GL_COMPILE);
-	{
-		glShadeModel(GL_SMOOTH);
-
-		std::vector<mesh_facet_ptr> mesh_facets = mesh.get_facets();
-
-		glColor4fv(green);
-		glBegin(GL_TRIANGLES);
-		{
-			for (std::vector<mesh_facet_ptr>::iterator fi = mesh_facets.begin() ; fi != mesh_facets.end() ; ++fi)
-			{
-				mesh_facet_ptr facet = *fi;
-				std::vector<mesh_vertex_ptr> verts = facet->get_verts();
-
-				const vector3d& facet_normal = facet->get_normal();
-				// TODO - enable per-facet normal
-
-				assert(verts.size() == 3);
-				for (int i = 0 ; i < 3 ; i++)
-				{
-					mesh_vertex_ptr vert = verts[i];
-					const vector3d v_point = vert->get_point();
-					const vector3d v_normal = vert->get_normal();	// TODO - option for per-vertex normals
-
-					// If the vertex has any adjacent triangles with facet normals > 45 degrees
-					// from eachother, then just use the facet normal rather than the vertex normal.
-					std::vector<mesh_facet_ptr> vert_facets = vert->get_adjacent_facets();
-					std::vector<mesh_facet_ptr>::iterator sharp_neighbor =
-							std::find_if(vert_facets.begin(), vert_facets.end(),
-									boost::bind(&STLDrawArea::is_sharp_edge_boundary, facet, _1));
-
-					if (sharp_neighbor != vert_facets.end())
-						glNormal3d(facet_normal.x(), facet_normal.y(), facet_normal.z());	// found sharp edge
-					else
-						glNormal3d(v_normal.x(), v_normal.y(), v_normal.z());
-
-					glVertex3d(v_point.x(), v_point.y(), v_point.z());
-				}
-			}
-		}
-		glEnd();
-
-		glLineWidth(2.5);
-		glEnable(GL_BLEND);
-		glBlendColor(0.0, 0.8, 0.2, 1.0);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_POLYGON_SMOOTH);
-		glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-		glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
-		glBegin(GL_LINES);
-		std::vector<mesh_edge_ptr> mesh_edges = mesh.get_edges();
-		for (std::vector<mesh_edge_ptr>::iterator ei = mesh_edges.begin() ; ei != mesh_edges.end() ; ++ei)
-		{
-			mesh_edge_ptr edge = *ei;
-			const vector3d start_pt = edge->get_vertex()->get_point();
-			const vector3d end_pt = edge->get_end_vertex()->get_point();
-
-			if (!edge->is_lamina())
-				glColor3d(0.0, 0.0, 0.0);
-			else
-				glColor3d(1.0, 1.0, 0.0);
-
-			glVertex3d(start_pt.x(), start_pt.y(), start_pt.z());
-			glVertex3d(end_pt.x(), end_pt.y(), end_pt.z());
-		}
-		glEnd(); // GL_LINES
-
-		glDisable(GL_BLEND);
-	}
-	glEndList();
+	shared_ptr<DisplayObject> mesh_do(new MeshDisplayObject(mesh));
+	shared_ptr<DisplayObject> edge_do(new MeshEdgesDisplayObject(mesh));
+	m_mesh_do = shared_ptr<DisplayObject>(mesh_do);
+	m_mesh_do->AddChild(edge_do);
+	m_mesh_do->BuildDisplayLists();
 
 	center_view();	// redraws
 }
@@ -183,8 +105,10 @@ void STLDrawArea::setup_lighting()
 	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 	glEnable(GL_COLOR_MATERIAL);
 
-	GLfloat light_position[] = { 5.0f, 5.0f, 10.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	GLfloat light_position_1[] = { 5.0f, 5.0f, 10.0f, 1.0f };
+	GLfloat light_position_2[] = { 0.0f, 10.0f, 0.0f, 1.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position_1);
+	glLightfv(GL_LIGHT1, GL_POSITION, light_position_2);
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -206,9 +130,9 @@ void STLDrawArea::resize(GLuint width, GLuint height)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	const double c_x = m_mesh_bbox.is_empty() ? 0.0 : m_mesh_bbox.center().x();
-	const double c_y = m_mesh_bbox.is_empty() ? 0.0 : m_mesh_bbox.center().y();
-	const double diam = m_mesh_bbox.is_empty() ? 1.0 : m_mesh_bbox.max_extent();
+	const double c_x = get_mesh_bbox().is_empty() ? 0.0 : get_mesh_bbox().center().x();
+	const double c_y = get_mesh_bbox().is_empty() ? 0.0 : get_mesh_bbox().center().y();
+	const double diam = get_mesh_bbox().is_empty() ? 1.0 : get_mesh_bbox().max_extent();
 	double left = c_x - diam;
 	double right = c_x + diam;
 	double bottom = c_y - diam;
@@ -254,7 +178,11 @@ void STLDrawArea::redraw()
 	// Draw stuff
 	glPushMatrix();
 	glMultMatrixf(m_obj_rot_matrix);
-	glCallList(m_mesh_display_id);
+
+	// TODO - move obj rot matrix to DisplayObject::Draw
+	if (m_mesh_do)
+		m_mesh_do->Draw();
+
 	glPopMatrix();
 	glDisable(GL_CULL_FACE);
 
@@ -266,10 +194,10 @@ void STLDrawArea::redraw()
 
 void STLDrawArea::center_view()
 {
-	assert(!m_mesh_bbox.is_empty());
+	assert(!get_mesh_bbox().is_empty());
 
-	const vector3d mesh_c = m_mesh_bbox.center();
-	const double diam = std::max(m_mesh_bbox.extent_x(), m_mesh_bbox.extent_y());
+	const vector3d mesh_c = get_mesh_bbox().center();
+	const double diam = std::max(get_mesh_bbox().extent_x(), get_mesh_bbox().extent_y());
 
 	vector3f origin(0.0f, 0.0f, 2 * diam);
 	vector3f view_dir((float) mesh_c.x(), (float) mesh_c.y(), (float) mesh_c.z());
@@ -277,6 +205,15 @@ void STLDrawArea::center_view()
 
 	resize(get_width(), get_height());
 	redraw();
+}
+
+maths::bbox3d STLDrawArea::get_mesh_bbox() const
+{
+	maths::bbox3d bbox;
+	if (m_mesh_do)
+		bbox = m_mesh_do->GetBBox();
+
+	return bbox;
 }
 
 void STLDrawArea::camera_rotate(const vector3f& axis, const float rot_angle_deg)

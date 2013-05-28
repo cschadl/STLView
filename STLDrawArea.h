@@ -10,8 +10,11 @@
 
 #include <gtkglmm.h>
 #include <gdkmm.h>
+
 #include <vectors.h>
 #include <geom.h>
+
+#include <boost/shared_ptr.hpp>
 
 #include <GL/gl.h>
 
@@ -19,6 +22,7 @@
 
 class triangle_mesh;
 class mesh_facet;
+class DisplayObject;
 
 class STLDrawArea : public Gtk::GL::DrawingArea
 {
@@ -30,19 +34,17 @@ private:
 	GLfloat			m_obj_rot_matrix[16];
 	GLfloat			m_zoom_factor;
 	GLCamera		m_camera;
-	GLint			m_mesh_display_id;
 
-	maths::bbox3d	m_mesh_bbox;	// For redraw...
+	boost::shared_ptr<DisplayObject>	m_mesh_do;
 
 public:
 	STLDrawArea();
 	virtual ~STLDrawArea() { }
 
 	// Creates a GL display list for the given mesh and draws it
-	void DrawMesh(const triangle_mesh& mesh);
+	void DrawMesh(boost::shared_ptr<triangle_mesh> mesh);
 
 protected:
-	static bool is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2);
 
 	// Helper function for getting the trackball point given the X, Y screen coordinates
 	maths::vector3f get_trackball_point(int x, int y) const;
@@ -55,6 +57,8 @@ protected:
 	void redraw();
 
 	void center_view();
+
+	maths::bbox3d get_mesh_bbox() const;
 
 	void camera_rotate(const maths::vector3f& axis, const float rot_angle_deg);
 	//void object_rotate(const maths::vector3f& axis, const float rot_angle_deg);

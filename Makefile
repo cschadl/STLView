@@ -8,7 +8,7 @@ CFLAGS=-Wall -O3
 OUTDIR=Release
 EXECUTABLE=stlview
 
-GLOBS=STLDrawArea.o MainWindow.o GLCamera.o stlview.o
+GLOBS=STLDrawArea.o MainWindow.o GLCamera.o DisplayObject.o stlview.o
 STLIMPORTOBJS=stl_import.o triangle_mesh.o
 
 # Release configuration

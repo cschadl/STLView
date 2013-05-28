@@ -157,5 +157,5 @@ void MainWindow::file_open(const Glib::ustring& filename)
 	set_window_title(filename);
 
 	m_mesh = mesh;
-	m_stlDrawArea->DrawMesh(*m_mesh);
+	m_stlDrawArea->DrawMesh(m_mesh);
 }
