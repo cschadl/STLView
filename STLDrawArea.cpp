@@ -130,9 +130,11 @@ void STLDrawArea::resize(GLuint width, GLuint height)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	const double c_x = get_mesh_bbox().is_empty() ? 0.0 : get_mesh_bbox().center().x();
-	const double c_y = get_mesh_bbox().is_empty() ? 0.0 : get_mesh_bbox().center().y();
-	const double diam = get_mesh_bbox().is_empty() ? 1.0 : get_mesh_bbox().max_extent();
+	const maths::bbox3d mesh_bbox = get_mesh_bbox();
+
+	const double c_x = mesh_bbox.is_empty() ? 0.0 : mesh_bbox.center().x();
+	const double c_y = mesh_bbox.is_empty() ? 0.0 : mesh_bbox.center().y();
+	const double diam = mesh_bbox.is_empty() ? 1.0 : mesh_bbox.max_extent();
 	double left = c_x - diam;
 	double right = c_x + diam;
 	double bottom = c_y - diam;
