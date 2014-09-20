@@ -242,21 +242,21 @@ void STLDrawArea::camera_zoom(const float dz)
 	redraw();
 }
 
-bool STLDrawArea::on_configure_event(GdkEventConfigure * event)
+bool STLDrawArea::on_configure_event(GdkEventConfigure* event)
 {
 	resize(get_width(), get_height());
 
 	return true;
 }
 
-bool STLDrawArea::on_expose_event(GdkEventExpose * event)
+bool STLDrawArea::on_expose_event(GdkEventExpose* event)
 {
 	redraw();
 
 	return true;
 }
 
-bool STLDrawArea::on_button_press_event(GdkEventButton * event)
+bool STLDrawArea::on_button_press_event(GdkEventButton* event)
 {
 	if (event->type == GDK_BUTTON_PRESS)
 	{
@@ -277,7 +277,7 @@ bool STLDrawArea::on_button_press_event(GdkEventButton * event)
 	return true;
 }
 
-bool STLDrawArea::on_button_release_event(GdkEventButton * event)
+bool STLDrawArea::on_button_release_event(GdkEventButton* event)
 {
 	if (event->type == GDK_BUTTON_RELEASE && (event->button == 1 || event->button == 3))
 		m_is_dragging = false;
@@ -285,7 +285,7 @@ bool STLDrawArea::on_button_release_event(GdkEventButton * event)
 	return true;
 }
 
-bool STLDrawArea::on_motion_notify_event(GdkEventMotion * event)
+bool STLDrawArea::on_motion_notify_event(GdkEventMotion* event)
 {
 	if (!m_is_dragging)
 		return true;
