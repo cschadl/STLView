@@ -5,6 +5,7 @@ INCLUDE=-I $(MATHSTUFF) -I $(STLIMPORT)
 PKGFLAGS=`pkg-config --cflags gtkmm-2.4 gtkglextmm-1.2`
 PKGLIBS=`pkg-config --libs gtkmm-2.4 gtkglextmm-1.2`
 CFLAGS=-Wall -O3 -std=c++11
+CFLAGS_DEP=-std=c++11
 OUTDIR=Release
 EXECUTABLE=stlview
 
@@ -37,12 +38,12 @@ $(OUTEXE): $(OUTOBJS)
 # Rule for STLIMPORT stuff
 $(addprefix $(OUTDIR)/, $(STLIMPORTOBJS)): $(OUTDIR)/%.o : $(STLIMPORT)/%.cpp
 	$(CXX) -c $(CFLAGS) $(INCLUDE) -o $@ $<	
-	$(CXX) -MM $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR)\/$$&/' > $(OUTDIR)/$*.d
+	$(CXX) -MM $(CFLAGS_DEP) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR)\/$$&/' > $(OUTDIR)/$*.d
 
 ## Default rule
 $(OUTDIR)/%.o: %.cpp
 	$(CXX) -c $(CFLAGS) $(PKGFLAGS) $(INCLUDE) -o $@ $<
-	$(CXX) -MM $(PKGFLAGS) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR)\/$$&/' > $(OUTDIR)/$*.d
+	$(CXX) -MM $(CFLAGS_DEP) $(PKGFLAGS) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR)\/$$&/' > $(OUTDIR)/$*.d
 	
 clean:
 	rm -rf $(OUTDIR)/*.o $(OUTEXE) $(OUTDIR)/*.d
@@ -65,12 +66,12 @@ $(OUTEXE_DEBUG): $(OUTOBJS_DEBUG)
 # Rule for STLIMPORT stuff
 $(addprefix $(OUTDIR_DEBUG)/, $(STLIMPORTOBJS)): $(OUTDIR_DEBUG)/%.o : $(STLIMPORT)/%.cpp
 	$(CXX) -c $(CFLAGS_DEBUG) $(CPPFLAGS_DEBUG) $(INCLUDE) -o $@ $<
-	$(CXX) -MM $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR_DEBUG)\/$$&/' > $(OUTDIR_DEBUG)/$*.d
+	$(CXX) -MM $(CFLAGS_DEP) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR_DEBUG)\/$$&/' > $(OUTDIR_DEBUG)/$*.d
 
 ## Default rule
 $(OUTDIR_DEBUG)/%.o: %.cpp
 	$(CXX) -c $(CFLAGS_DEBUG) $(CPPFLAGS_DEBUG) $(PKGFLAGS) $(INCLUDE) -o $@ $<
-	$(CXX) -MM $(PKGFLAGS) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR_DEBUG)\/$$&/' > $(OUTDIR_DEBUG)/$*.d
+	$(CXX) -MM $(CFLAGS_DEP) $(PKGFLAGS) $(INCLUDE) $< | perl -pe 's/^\w+\.o:/$(OUTDIR_DEBUG)\/$$&/' > $(OUTDIR_DEBUG)/$*.d
 
 # This works for some reason
 debug_clean: OUTDIR=Debug
