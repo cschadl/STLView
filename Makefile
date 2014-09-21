@@ -21,7 +21,7 @@ OUTEXE=$(OUTDIR)/$(EXECUTABLE)
 OUTDIR_DEBUG=Debug
 OUTOBJS_DEBUG=$(addprefix $(OUTDIR_DEBUG)/, $(OBJS))
 OUTEXE_DEBUG=$(OUTDIR_DEBUG)/$(EXECUTABLE)
-CFLAGS_DEBUG=-Wall -ggdb3
+CFLAGS_DEBUG=-Wall -ggdb3 -std=c++11
 CPPFLAGS_DEBUG=-DDEBUG
 
 ################################
