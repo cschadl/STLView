@@ -12,8 +12,7 @@
 #include <geom.h>
 
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 class triangle_mesh;
 
@@ -22,8 +21,8 @@ class triangle_mesh;
 class DisplayObject
 {
 public:
-	typedef boost::shared_ptr<DisplayObject>		DOPtr;
-	typedef boost::shared_ptr<const DisplayObject>	ConstDOPtr;
+	typedef std::shared_ptr<DisplayObject>			DOPtr;
+	typedef std::shared_ptr<const DisplayObject>	ConstDOPtr;
 
 private:
 	GLuint						m_display_id;
@@ -57,12 +56,12 @@ public:
 class MeshDisplayObject : public DisplayObject
 {
 private:
-	boost::shared_ptr<triangle_mesh> m_mesh;
+	std::shared_ptr<triangle_mesh> m_mesh;
 
-	static bool is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2);
+	static bool is_sharp_edge_boundary(const mesh_facet & f1, const mesh_facet & f2);
 
 public:
-	MeshDisplayObject(boost::shared_ptr<triangle_mesh> mesh);
+	MeshDisplayObject(std::shared_ptr<triangle_mesh> mesh);
 
 	virtual void BuildDisplayLists();
 	virtual maths::bbox3d GetBBox() const;
@@ -71,10 +70,10 @@ public:
 class MeshEdgesDisplayObject : public DisplayObject
 {
 private:
-	boost::shared_ptr<triangle_mesh> m_mesh;
+	std::shared_ptr<triangle_mesh> m_mesh;
 
 public:
-	MeshEdgesDisplayObject(boost::shared_ptr<triangle_mesh> mesh);
+	MeshEdgesDisplayObject(std::shared_ptr<triangle_mesh> mesh);
 
 	virtual void BuildDisplayLists();
 	virtual maths::bbox3d GetBBox() const;

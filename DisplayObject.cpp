@@ -7,15 +7,18 @@
 
 #include <vectors.h>
 #include <triangle_mesh.h>
+
 #include <exception>
 #include <stdexcept>
+
 #include <GL/gl.h>
-#include <boost/bind.hpp>
+
 #include "DisplayObject.h"
 
 using maths::vector3d;
 using maths::bbox3d;
-using boost::shared_ptr;
+
+using std::shared_ptr;
 
 DisplayObject::DisplayObject()
 : m_display_id(glGenLists(1))
@@ -82,11 +85,12 @@ MeshDisplayObject::MeshDisplayObject(shared_ptr<triangle_mesh> mesh)
 }
 
 //static
-bool MeshDisplayObject::is_sharp_edge_boundary(const mesh_facet* f1, const mesh_facet* f2)
+bool MeshDisplayObject::is_sharp_edge_boundary(const mesh_facet & f1, const mesh_facet & f2)
 {
 	// TODO - Maybe this should only be for convex facet edges
+	// Also TODO - gank mesh edge concavity code from work ;)
 	const double tol = 1.0e-4;
-	const double cos_norms = f1->get_normal() * f2->get_normal();
+	const double cos_norms = f1.get_normal() * f2.get_normal();
 	return cos_norms < M_PI_4 - tol;
 }
 
@@ -128,8 +132,9 @@ void MeshDisplayObject::BuildDisplayLists()
 				// from eachother, then just use the facet normal rather than the vertex normal.
 				std::vector<mesh_facet_ptr> vert_facets = vert->get_adjacent_facets();
 				std::vector<mesh_facet_ptr>::iterator sharp_neighbor =
-						std::find_if(vert_facets.begin(), vert_facets.end(),
-								boost::bind(&MeshDisplayObject::is_sharp_edge_boundary, facet, _1));
+					std::find_if(vert_facets.begin(), vert_facets.end(),
+						[&facet](const mesh_facet_ptr & vf)
+						{ return MeshDisplayObject::is_sharp_edge_boundary(*facet, *vf); });
 
 				if (sharp_neighbor != vert_facets.end())
 					glNormal3d(facet_normal.x(), facet_normal.y(), facet_normal.z());	// found sharp edge

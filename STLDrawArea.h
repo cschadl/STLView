@@ -8,13 +8,13 @@
 #ifndef STLDRAWAREA_H_
 #define STLDRAWAREA_H_
 
+#include <memory>
+
 #include <gtkglmm.h>
 #include <gdkmm.h>
 
 #include <vectors.h>
 #include <geom.h>
-
-#include <boost/shared_ptr.hpp>
 
 #include <GL/gl.h>
 
@@ -35,14 +35,14 @@ private:
 	GLfloat			m_zoom_factor;
 	GLCamera		m_camera;
 
-	boost::shared_ptr<DisplayObject>	m_mesh_do;
+	std::shared_ptr<DisplayObject>	m_mesh_do;
 
 public:
 	STLDrawArea();
 	virtual ~STLDrawArea() { }
 
 	// Creates a GL display list for the given mesh and draws it
-	void DrawMesh(boost::shared_ptr<triangle_mesh> mesh);
+	void DrawMesh(std::shared_ptr<triangle_mesh> mesh);
 
 protected:
 

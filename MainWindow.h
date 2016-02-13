@@ -14,8 +14,6 @@
 #include <memory>
 #include <gtkmm.h>
 #include <gtkmm/box.h>
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
 
 class triangle_mesh;
 
@@ -41,8 +39,8 @@ public:
 class MainWindow : public Gtk::Window
 {
 private:
-	boost::scoped_ptr<STLDrawArea>		m_stlDrawArea;
-	boost::shared_ptr<triangle_mesh>	m_mesh;	// The current mesh to display
+	std::unique_ptr<STLDrawArea>	m_stlDrawArea;
+	std::shared_ptr<triangle_mesh>	m_mesh;	// The current mesh to display
 
 	Gtk::VBox		m_vBox;
 	Gtk::MenuBar	m_menuBar;

@@ -7,6 +7,7 @@
 
 #include "MainWindow.h"
 #include "STLDrawArea.h"
+
 #include "stl_import.h"
 #include "triangle_mesh.h"
 
@@ -19,6 +20,9 @@ const Glib::ustring MainWindow::APP_NAME = "STLView";
 #else
 const Glib::ustring MainWindow::APP_NAME = "STLview (Debug)";
 #endif
+
+using std::shared_ptr;
+using std::unique_ptr;
 
 ScopedWaitCursor::ScopedWaitCursor(Gtk::Widget& widget)
 : m_window(widget.get_window())
@@ -50,10 +54,10 @@ MainWindow::MainWindow()
 
 	{
 		// Add stuff to menu bar
-		Gtk::MenuItem* file_menubar_item 	= Gtk::manage(new Gtk::MenuItem("File"));
-		Gtk::Menu* file_menu 				= Gtk::manage(new Gtk::Menu());
-		Gtk::MenuItem* file_open 			= Gtk::manage(new Gtk::MenuItem("Open"));
-		Gtk::MenuItem* file_quit 			= Gtk::manage(new Gtk::MenuItem("Quit"));
+		Gtk::MenuItem*	file_menubar_item 	= Gtk::manage(new Gtk::MenuItem("File"));
+		Gtk::Menu* 		file_menu 			= Gtk::manage(new Gtk::Menu());
+		Gtk::MenuItem*	file_open 			= Gtk::manage(new Gtk::MenuItem("Open"));
+		Gtk::MenuItem*	file_quit 			= Gtk::manage(new Gtk::MenuItem("Quit"));
 
 		file_menu->append(*file_open);
 		file_open->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::do_file_open_dialog));
@@ -127,7 +131,7 @@ void MainWindow::file_open(const Glib::ustring& filename)
 {
 	ScopedWaitCursor wc(*this);
 
-	boost::shared_ptr<triangle_mesh> mesh;
+	shared_ptr<triangle_mesh> mesh;
 	try
 	{
 		std::ifstream in_stream;
@@ -138,7 +142,7 @@ void MainWindow::file_open(const Glib::ustring& filename)
 		//	throw std::runtime_error("Error opening file");
 
 		stl_import importer(in_stream);
-		mesh = boost::shared_ptr<triangle_mesh>(new triangle_mesh(importer.get_facets()));
+		mesh = shared_ptr<triangle_mesh>(new triangle_mesh(importer.get_facets()));
 	}
 	catch (std::exception& ex)
 	{

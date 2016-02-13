@@ -15,7 +15,7 @@ using Gdk::GL::Drawable;
 using maths::vector3f;
 using maths::vector2f;
 using maths::vector3d;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
