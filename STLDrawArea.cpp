@@ -12,10 +12,13 @@
 
 using Glib::RefPtr;
 using Gdk::GL::Drawable;
+
 using maths::vector3f;
 using maths::vector2f;
 using maths::vector3d;
+
 using std::shared_ptr;
+using std::make_shared;
 
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
@@ -45,10 +48,8 @@ void STLDrawArea::DrawMesh(shared_ptr<triangle_mesh> mesh)
 	// TODO - selectable color
 	//const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};	// TODO - adjustable alpha
 
-	shared_ptr<DisplayObject> mesh_do(new MeshDisplayObject(mesh));
-	shared_ptr<DisplayObject> edge_do(new MeshEdgesDisplayObject(mesh));
-	m_mesh_do = shared_ptr<DisplayObject>(mesh_do);
-	m_mesh_do->AddChild(edge_do);
+	m_mesh_do = make_shared<MeshDisplayObject>(mesh);
+	m_mesh_do->AddChild(make_shared<MeshEdgesDisplayObject>(mesh));
 	m_mesh_do->BuildDisplayLists();
 
 	center_view();	// redraws
