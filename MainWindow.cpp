@@ -11,6 +11,8 @@
 #include "stl_import.h"
 #include "triangle_mesh.h"
 
+#include <gtkmm/accelgroup.h>
+
 #include <fstream>
 #include <sstream>
 #include <exception>
@@ -85,6 +87,15 @@ MainWindow::MainWindow()
 
 		m_menuBar.append(*file_menubar_item);
 		m_menuBar.append(*view_menubar_item);
+
+		file_menu->set_accel_group(get_accel_group());
+		file_open->add_accelerator(	"activate", get_accel_group(),
+									GDK_f, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+
+		view_menu->set_accel_group(get_accel_group());
+		view_show_edges->add_accelerator("activate", get_accel_group(),
+										 GDK_e, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+
 	}
 
 	m_vBox.pack_start(m_menuBar, Gtk::PACK_SHRINK);
