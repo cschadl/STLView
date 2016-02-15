@@ -91,7 +91,7 @@ MainWindow::MainWindow()
 
 		file_menu->set_accel_group(get_accel_group());
 		file_open->add_accelerator(	"activate", get_accel_group(),
-									GDK_f, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+									GDK_o, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
 
 		view_menu->set_accel_group(get_accel_group());
 		view_show_edges->add_accelerator("activate", get_accel_group(),
