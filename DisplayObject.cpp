@@ -56,12 +56,18 @@ void DisplayObject::AddChild(const DOPtr& display_object)
 	m_children.push_back(display_object);
 }
 
+void DisplayObject::RemoveChild(const DOPtr& display_object)
+{
+	auto child_it = std::find(m_children.begin(), m_children.end(), display_object);
+	if (child_it != m_children.end())
+		m_children.erase(child_it);
+}
+
 void DisplayObject::Draw() const
 {
 	glCallList(display_id());
 
-	std::vector<DOPtr>	child_do_queue;
-	child_do_queue.insert(child_do_queue.end(), m_children.begin(), m_children.end());
+	std::vector<DOPtr> child_do_queue(m_children);
 
 	while (!child_do_queue.empty())
 	{

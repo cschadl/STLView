@@ -47,6 +47,8 @@ public:
 	virtual maths::bbox3d GetBBox() const = 0;
 
 	void AddChild(const DOPtr& display_object);
+	void RemoveChild(const DOPtr& display_object);
+	void RemoveAllChildren() { m_children.clear(); }
 	const std::vector<DOPtr>& GetChildren() const { return m_children; }
 
 	/** Calls all display lists */

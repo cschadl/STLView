@@ -7,6 +7,7 @@
 
 #include "MainWindow.h"
 #include "STLDrawArea.h"
+#include "DisplayObject.h"
 
 #include "stl_import.h"
 #include "triangle_mesh.h"
@@ -153,7 +154,17 @@ void MainWindow::on_view_show_edges()
 
 	ScopedWaitCursor wc(*this);
 
-	m_stlDrawArea->InitMeshDO(m_mesh, m_show_edges);
+	if (m_show_edges)
+	{
+		auto mesh_edges = std::make_shared<MeshEdgesDisplayObject>(m_mesh);
+		m_stlDrawArea->GetDisplayObject()->AddChild(mesh_edges);
+		mesh_edges->BuildDisplayLists();
+	}
+	else
+	{
+		m_stlDrawArea->GetDisplayObject()->RemoveAllChildren();
+	}
+
 	m_stlDrawArea->Redraw();
 }
 

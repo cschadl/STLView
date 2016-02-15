@@ -43,6 +43,7 @@ public:
 
 	// Creates a GL display list for the given mesh
 	void InitMeshDO(const std::shared_ptr<triangle_mesh>& mesh, bool include_edges);
+	std::shared_ptr<DisplayObject> GetDisplayObject() { return m_mesh_do; }
 
 	bool HasMeshDO() const { return !!m_mesh_do; }
 
