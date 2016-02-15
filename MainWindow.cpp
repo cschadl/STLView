@@ -154,7 +154,19 @@ void MainWindow::on_view_show_edges()
 
 	ScopedWaitCursor wc(*this);
 
-	auto mesh_edges = m_stlDrawArea->GetDisplayObject()->GetChildren().front();	// hmm...
+	DisplayObject::DOPtr mesh_edges;
+	if (m_stlDrawArea->GetDisplayObject()->GetChildren().empty())
+	{
+		mesh_edges = std::make_shared<MeshEdgesDisplayObject>(m_mesh);
+		mesh_edges->BuildDisplayLists();
+
+		m_stlDrawArea->GetDisplayObject()->AddChild(mesh_edges);
+	}
+	else
+	{
+		mesh_edges = m_stlDrawArea->GetDisplayObject()->GetChildren().front();
+	}
+
 	mesh_edges->Suppressed() = !m_show_edges;
 
 	m_stlDrawArea->Redraw();

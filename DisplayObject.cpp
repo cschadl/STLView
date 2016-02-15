@@ -72,7 +72,7 @@ void DisplayObject::Draw() const
 
 	while (!child_do_queue.empty())
 	{
-		ConstDOPtr display_obj = *child_do_queue.begin();
+		DOPtr display_obj = *child_do_queue.begin();
 		child_do_queue.erase(child_do_queue.begin());
 
 		if (!display_obj->Suppressed())

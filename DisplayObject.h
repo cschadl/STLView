@@ -50,7 +50,7 @@ public:
 	void AddChild(const DOPtr& display_object);
 	void RemoveChild(const DOPtr& display_object);
 	void RemoveAllChildren() { m_children.clear(); }
-	const std::vector<DOPtr>& GetChildren() const { return m_children; }
+	std::vector<DOPtr>& GetChildren() { return m_children; }
 
 	/** @{
 	 *  If true, then this DisplayObject and all children will not be drawn
@@ -66,6 +66,7 @@ public:
 class MeshDisplayObject : public DisplayObject
 {
 private:
+	// Maybe this should be a weak_ptr
 	std::shared_ptr<triangle_mesh> m_mesh;
 
 	static bool is_sharp_edge_boundary(const mesh_facet & f1, const mesh_facet & f2);
