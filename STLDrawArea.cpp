@@ -39,7 +39,7 @@ STLDrawArea::STLDrawArea()
 	add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK | Gdk::POINTER_MOTION_MASK | Gdk::SCROLL_MASK);
 }
 
-void STLDrawArea::DrawMesh(shared_ptr<triangle_mesh> mesh)
+void STLDrawArea::InitMeshDO(const shared_ptr<triangle_mesh>& mesh, bool include_edges)
 {
 	m_zoom_factor = 1.0f;
 
@@ -49,10 +49,10 @@ void STLDrawArea::DrawMesh(shared_ptr<triangle_mesh> mesh)
 	//const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};	// TODO - adjustable alpha
 
 	m_mesh_do = make_shared<MeshDisplayObject>(mesh);
-	m_mesh_do->AddChild(make_shared<MeshEdgesDisplayObject>(mesh));
-	m_mesh_do->BuildDisplayLists();
+	if (include_edges)
+		m_mesh_do->AddChild(make_shared<MeshEdgesDisplayObject>(mesh));
 
-	center_view();	// redraws
+	m_mesh_do->BuildDisplayLists();
 }
 
 vector3f STLDrawArea::get_trackball_point(int x, int y) const
@@ -163,7 +163,7 @@ void STLDrawArea::resize(GLuint width, GLuint height)
 	gl_drawable->gl_end();
 }
 
-void STLDrawArea::redraw()
+void STLDrawArea::Redraw()
 {
 	RefPtr<Drawable> gl_drawable = get_gl_drawable();
 	gl_drawable->gl_begin(get_gl_context());
@@ -195,7 +195,7 @@ void STLDrawArea::redraw()
 	gl_drawable->gl_end();
 }
 
-void STLDrawArea::center_view()
+void STLDrawArea::CenterView()
 {
 	assert(!get_mesh_bbox().is_empty());
 
@@ -207,7 +207,8 @@ void STLDrawArea::center_view()
 	m_camera.LookAt(origin, view_dir, vector3f(0.0f, 1.0f, 0.0f));
 
 	resize(get_width(), get_height());
-	redraw();
+
+	Redraw();
 }
 
 maths::bbox3d STLDrawArea::get_mesh_bbox() const
@@ -223,14 +224,14 @@ void STLDrawArea::camera_rotate(const vector3f& axis, const float rot_angle_deg)
 {
 	m_camera.Orbit(axis, rot_angle_deg);
 
-	redraw();
+	Redraw();
 }
 
 void STLDrawArea::camera_pan(const vector2f& dxy)
 {
 	m_camera.Pan(dxy);
 
-	redraw();
+	Redraw();
 }
 
 void STLDrawArea::camera_zoom(const float dz)
@@ -240,7 +241,7 @@ void STLDrawArea::camera_zoom(const float dz)
 
 	// Orothographic projection needs a resize after zooming
 	resize(get_width(), get_height());
-	redraw();
+	Redraw();
 }
 
 bool STLDrawArea::on_configure_event(GdkEventConfigure* event)
@@ -252,7 +253,7 @@ bool STLDrawArea::on_configure_event(GdkEventConfigure* event)
 
 bool STLDrawArea::on_expose_event(GdkEventExpose* event)
 {
-	redraw();
+	Redraw();
 
 	return true;
 }

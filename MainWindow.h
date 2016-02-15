@@ -45,6 +45,8 @@ private:
 	Gtk::VBox		m_vBox;
 	Gtk::MenuBar	m_menuBar;
 
+	bool 			m_show_edges;
+
 	static const Glib::ustring		APP_NAME;
 
 public:
@@ -64,6 +66,7 @@ protected:
 
 	// Callbacks
 	void do_file_open_dialog();
+	void on_view_show_edges();
 
 	// Other stuff
 

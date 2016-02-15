@@ -41,8 +41,13 @@ public:
 	STLDrawArea();
 	virtual ~STLDrawArea() { }
 
-	// Creates a GL display list for the given mesh and draws it
-	void DrawMesh(std::shared_ptr<triangle_mesh> mesh);
+	// Creates a GL display list for the given mesh
+	void InitMeshDO(const std::shared_ptr<triangle_mesh>& mesh, bool include_edges);
+
+	bool HasMeshDO() const { return !!m_mesh_do; }
+
+	void Redraw();		///< Redraws the view
+	void CenterView();	///< Centers the view and redraws
 
 protected:
 
@@ -54,9 +59,6 @@ protected:
 
 	void setup_lighting();
 	void resize(GLuint width, GLuint height);	// Called from on_expose_event()
-	void redraw();
-
-	void center_view();
 
 	maths::bbox3d get_mesh_bbox() const;
 

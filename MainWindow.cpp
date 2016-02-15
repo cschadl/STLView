@@ -47,6 +47,7 @@ ScopedWaitCursor::~ScopedWaitCursor()
 MainWindow::MainWindow()
 : m_stlDrawArea(new STLDrawArea)
 , m_vBox(false /* homogeneous */, 0 /* spacing */)
+, m_show_edges(true)
 {
 	set_window_title("");
 
@@ -59,6 +60,10 @@ MainWindow::MainWindow()
 		Gtk::MenuItem*	file_open 			= Gtk::manage(new Gtk::MenuItem("Open"));
 		Gtk::MenuItem*	file_quit 			= Gtk::manage(new Gtk::MenuItem("Quit"));
 
+		Gtk::MenuItem*		view_menubar_item	= Gtk::manage(new Gtk::MenuItem("View"));
+		Gtk::Menu*			view_menu			= Gtk::manage(new Gtk::Menu());
+		Gtk::CheckMenuItem*	view_show_edges		= Gtk::manage(new Gtk::CheckMenuItem("Show Edges"));
+
 		file_menu->append(*file_open);
 		file_open->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::do_file_open_dialog));
 		file_open->show();
@@ -70,7 +75,16 @@ MainWindow::MainWindow()
 		file_menubar_item->set_submenu(*file_menu);
 		file_menubar_item->show();
 
+		view_menu->append(*view_show_edges);
+		view_show_edges->set_active(m_show_edges);	// do this before we connect the callback
+		view_show_edges->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_show_edges));
+		view_show_edges->show();
+
+		view_menubar_item->set_submenu(*view_menu);
+		view_menubar_item->show();
+
 		m_menuBar.append(*file_menubar_item);
+		m_menuBar.append(*view_menubar_item);
 	}
 
 	m_vBox.pack_start(m_menuBar, Gtk::PACK_SHRINK);
@@ -119,6 +133,19 @@ void MainWindow::do_file_open_dialog()
 		file_open(filename);
 }
 
+void MainWindow::on_view_show_edges()
+{
+	m_show_edges = !m_show_edges;
+
+	if (!m_mesh)
+		return;
+
+	ScopedWaitCursor wc(*this);
+
+	m_stlDrawArea->InitMeshDO(m_mesh, m_show_edges);
+	m_stlDrawArea->Redraw();
+}
+
 void MainWindow::set_window_title(const Glib::ustring& current_fn)
 {
 	std::ostringstream title_ss;
@@ -161,5 +188,6 @@ void MainWindow::file_open(const Glib::ustring& filename)
 	set_window_title(filename);
 
 	m_mesh = mesh;
-	m_stlDrawArea->DrawMesh(m_mesh);
+	m_stlDrawArea->InitMeshDO(m_mesh, m_show_edges);
+	m_stlDrawArea->CenterView();
 }
