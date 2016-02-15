@@ -43,6 +43,7 @@ ScopedWaitCursor::ScopedWaitCursor(Gtk::Widget& widget)
 ScopedWaitCursor::~ScopedWaitCursor()
 {
 	m_window->set_cursor();
+
 	while (Gtk::Main::events_pending())
 		Gtk::Main::iteration();
 }
