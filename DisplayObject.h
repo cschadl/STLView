@@ -28,6 +28,7 @@ private:
 	GLuint						m_display_id;
 	maths::matrix<float>		m_transform;
 	std::vector<DOPtr>			m_children;
+	bool						m_suppressed;
 
 protected:
 	void 	build_child_display_lists();
@@ -50,6 +51,13 @@ public:
 	void RemoveChild(const DOPtr& display_object);
 	void RemoveAllChildren() { m_children.clear(); }
 	const std::vector<DOPtr>& GetChildren() const { return m_children; }
+
+	/** @{
+	 *  If true, then this DisplayObject and all children will not be drawn
+	 */
+	bool& Suppressed() { return m_suppressed; }
+	const bool& Suppressed() const { return m_suppressed; }
+	/** @} */
 
 	/** Calls all display lists */
 	void Draw() const;

@@ -23,6 +23,7 @@ using std::shared_ptr;
 DisplayObject::DisplayObject()
 : m_display_id(glGenLists(1))
 , m_transform(4, 4)
+, m_suppressed(false)
 {
 	if (m_display_id == 0)
 		throw std::runtime_error("Error creating display list");
@@ -74,10 +75,13 @@ void DisplayObject::Draw() const
 		ConstDOPtr display_obj = *child_do_queue.begin();
 		child_do_queue.erase(child_do_queue.begin());
 
-		glCallList(display_obj->display_id());
+		if (!display_obj->Suppressed())
+		{
+			glCallList(display_obj->display_id());
 
-		const std::vector<DOPtr> display_obj_children = display_obj->GetChildren();
-		child_do_queue.insert(child_do_queue.end(), display_obj_children.begin(), display_obj_children.end());
+			const std::vector<DOPtr> display_obj_children = display_obj->GetChildren();
+			child_do_queue.insert(child_do_queue.end(), display_obj_children.begin(), display_obj_children.end());
+		}
 	}
 }
 
