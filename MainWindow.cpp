@@ -17,6 +17,7 @@
 #include <fstream>
 #include <sstream>
 #include <exception>
+#include <memory>
 
 #ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
@@ -198,7 +199,7 @@ void MainWindow::file_open(const Glib::ustring& filename)
 		//	throw std::runtime_error("Error opening file");
 
 		stl_import importer(in_stream);
-		mesh = shared_ptr<triangle_mesh>(new triangle_mesh(importer.get_facets()));
+		mesh = std::make_shared<triangle_mesh>(importer.get_facets());
 	}
 	catch (std::exception& ex)
 	{
