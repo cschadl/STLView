@@ -191,10 +191,9 @@ void MeshEdgesDisplayObject::BuildDisplayLists()
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
 	glBegin(GL_LINES);
-	std::vector<mesh_edge_ptr> mesh_edges = m_mesh->get_edges();
-	for (std::vector<mesh_edge_ptr>::iterator ei = mesh_edges.begin() ; ei != mesh_edges.end() ; ++ei)
+	const std::vector<mesh_edge_ptr>& mesh_edges = m_mesh->get_edges();
+	for (const mesh_edge_ptr& edge : mesh_edges)
 	{
-		mesh_edge_ptr edge = *ei;
 		const vector3d start_pt = edge->get_vertex()->get_point();
 		const vector3d end_pt = edge->get_end_vertex()->get_point();
 
