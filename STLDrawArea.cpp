@@ -49,9 +49,11 @@ void STLDrawArea::InitMeshDO(const shared_ptr<triangle_mesh>& mesh, bool include
 	//const GLfloat green[] = {0.0, 0.8, 0.2, 1.0};	// TODO - adjustable alpha
 
 	m_mesh_do = make_shared<MeshDisplayObject>(mesh);
-	if (include_edges)
-		m_mesh_do->AddChild(make_shared<MeshEdgesDisplayObject>(mesh));
 
+	auto edges_do = make_shared<MeshEdgesDisplayObject>(mesh);
+	edges_do->Suppressed() = !include_edges;
+
+	m_mesh_do->AddChild(edges_do);
 	m_mesh_do->BuildDisplayLists();
 }
 
