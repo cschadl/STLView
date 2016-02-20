@@ -67,10 +67,11 @@ MainWindow::MainWindow()
 	Gtk::MenuItem*		view_menubar_item	= Gtk::manage(new Gtk::MenuItem("View"));
 	Gtk::Menu*			view_menu			= Gtk::manage(new Gtk::Menu());
 	Gtk::CheckMenuItem*	view_show_edges		= Gtk::manage(new Gtk::CheckMenuItem("Show Edges"));
+	Gtk::MenuItem* 		view_mesh_info		= Gtk::manage(new Gtk::MenuItem("Mesh Info..."));
 
 	Gtk::MenuItem*	help_menubar_item	= Gtk::manage(new Gtk::MenuItem("Help"));
 	Gtk::Menu*		help_menu			= Gtk::manage(new Gtk::Menu());
-	Gtk::MenuItem*	help_opengl_info			= Gtk::manage(new Gtk::MenuItem("OpenGL Info..."));
+	Gtk::MenuItem*	help_opengl_info	= Gtk::manage(new Gtk::MenuItem("OpenGL Info..."));
 
 	file_menu->append(*file_open);
 	file_open->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::do_file_open_dialog));
@@ -87,6 +88,10 @@ MainWindow::MainWindow()
 	view_show_edges->set_active(m_show_edges);	// do this before we connect the callback
 	view_show_edges->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_show_edges));
 	view_show_edges->show();
+
+	view_menu->append(*view_mesh_info);
+	view_mesh_info->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::on_view_mesh_info));
+	view_mesh_info->show();
 
 	view_menubar_item->set_submenu(*view_menu);
 	view_menubar_item->show();
@@ -172,6 +177,23 @@ void MainWindow::on_view_show_edges()
 	mesh_edges->Suppressed() = !m_show_edges;
 
 	m_stlDrawArea->Redraw();
+}
+
+void MainWindow::on_view_mesh_info()
+{
+	if (!m_mesh)
+		return;
+
+	std::stringstream ss;
+	ss	<< "Number of facets: " << m_mesh->get_facets().size() << std::endl
+		<< "Number of edges: " << m_mesh->get_edges().size() << std::endl
+		<< "Number of vertices: " << m_mesh->get_vertices().size() << std::endl
+		<< "Number of lamina edges: " << m_mesh->get_lamina_edges().size() << std::endl
+		<< "Volume: " << m_mesh->volume() << std::endl
+		<< "Area: " << m_mesh->area() << std::endl
+		<< "Is Closed: " << (m_mesh->is_manifold() ? "TRUE" : "FALSE") << std::endl;
+
+	DoMessageBox("Mesh Info", ss.str().c_str());
 }
 
 void MainWindow::on_help_opengl_info()
