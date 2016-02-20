@@ -25,6 +25,10 @@ const Glib::ustring MainWindow::APP_NAME = "STLView";
 const Glib::ustring MainWindow::APP_NAME = "STLview (Debug)";
 #endif
 
+const Glib::ustring MainWindow::MENU_ITEM_DATA_KEYNAME = "MENU_ITEM_DATA";
+
+const size_t MainWindow::MENU_ITEM_MESH_INFO_ID = 0x8001;
+
 using std::shared_ptr;
 using std::unique_ptr;
 
@@ -90,6 +94,8 @@ MainWindow::MainWindow()
 	view_show_edges->show();
 
 	view_menu->append(*view_mesh_info);
+	view_mesh_info->set_sensitive(!!m_mesh);
+	view_mesh_info->set_data(MENU_ITEM_DATA_KEYNAME, (void *) MENU_ITEM_MESH_INFO_ID);
 	view_mesh_info->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::on_view_mesh_info));
 	view_mesh_info->show();
 
@@ -220,6 +226,41 @@ void MainWindow::set_window_title(const Glib::ustring& current_fn)
 	set_title(title_ss.str().c_str());
 }
 
+Gtk::MenuItem* MainWindow::get_menu_item(size_t menu_id)
+{
+	// TODO - this will only get top-level menu items
+	// A better approach would be to DFS for the desired menu item
+	Gtk::MenuItem* menu_item = nullptr;
+
+	auto menubar_items = m_menuBar.get_children();
+	for (auto widget : menubar_items)
+	{
+		if (menu_item)
+			break;
+
+		auto item = dynamic_cast<Gtk::MenuItem*>(widget);
+		if (!item)
+			continue;
+
+		auto submenu = item->get_submenu();
+		for (auto submenu_widget : submenu->get_children())
+		{
+			if (menu_item)
+				break;
+
+			auto submenu_item = dynamic_cast<Gtk::MenuItem*>(submenu_widget);
+			if (submenu_item)
+			{
+				size_t submenu_id = (size_t) submenu_item->get_data(MENU_ITEM_DATA_KEYNAME);
+				if (submenu_id == menu_id)
+					menu_item = submenu_item;
+			}
+		}
+	}
+
+	return menu_item;
+}
+
 void MainWindow::file_open(const Glib::ustring& filename)
 {
 	ScopedWaitCursor wc(*this);
@@ -252,6 +293,9 @@ void MainWindow::file_open(const Glib::ustring& filename)
 		throw std::runtime_error("no mesh (weird)");
 
 	set_window_title(filename);
+
+	Gtk::MenuItem* mesh_info_item = get_menu_item(MENU_ITEM_MESH_INFO_ID);
+	mesh_info_item->set_sensitive(true);
 
 	m_mesh = mesh;
 	m_stlDrawArea->InitMeshDO(m_mesh, m_show_edges);

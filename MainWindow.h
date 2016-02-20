@@ -48,6 +48,9 @@ private:
 	bool 			m_show_edges;
 
 	static const Glib::ustring		APP_NAME;
+	static const Glib::ustring		MENU_ITEM_DATA_KEYNAME;
+
+	static const size_t				MENU_ITEM_MESH_INFO_ID;
 
 public:
 	MainWindow();
@@ -77,6 +80,11 @@ protected:
 	 *  					Empty if no file is currently open.
 	 */
 	void set_window_title(const Glib::ustring& current_fn);
+
+	/** Gets the menu item with get_name() == menu_item_name
+	 *
+	 */
+	Gtk::MenuItem* get_menu_item(size_t menu_id);
 
 	void file_open(const Glib::ustring& filename);
 };
