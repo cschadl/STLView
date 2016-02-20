@@ -18,6 +18,7 @@
 #include <sstream>
 #include <exception>
 #include <memory>
+#include <iomanip>
 
 #ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
@@ -197,7 +198,11 @@ void MainWindow::on_view_mesh_info()
 		<< "Number of lamina edges: " << m_mesh->get_lamina_edges().size() << std::endl
 		<< "Volume: " << m_mesh->volume() << std::endl
 		<< "Area: " << m_mesh->area() << std::endl
-		<< "Is Closed: " << (m_mesh->is_manifold() ? "TRUE" : "FALSE") << std::endl;
+		<< "Is Closed: " << (m_mesh->is_manifold() ? "TRUE" : "FALSE") << std::endl << std::endl
+		<< "BBox dimensions: " << std::endl <<
+		std::setprecision(4) << "X: " << m_mesh->bbox().extent_x() << " "
+							 << "Y: " << m_mesh->bbox().extent_y() << " "
+							 << "Z: " << m_mesh->bbox().extent_z() << std::endl;
 
 	DoMessageBox("Mesh Info", ss.str().c_str());
 }
@@ -232,7 +237,8 @@ Gtk::MenuItem* MainWindow::get_menu_item(size_t menu_id)
 	// A better approach would be to DFS for the desired menu item
 	Gtk::MenuItem* menu_item = nullptr;
 
-	auto menubar_items = m_menuBar.get_children();
+	std::vector<Gtk::Widget*> menubar_items = m_menuBar.get_children();
+
 	for (auto widget : menubar_items)
 	{
 		if (menu_item)
