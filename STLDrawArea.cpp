@@ -331,9 +331,6 @@ void STLDrawArea::on_realize()
 {
 	Gtk::GL::DrawingArea::on_realize();
 
-	const char* version_string = (const char *) glGetString(GL_VERSION);
-	std::cout << version_string << std::endl;
-
 	init_gl();
 }
 

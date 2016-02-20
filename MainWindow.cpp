@@ -58,48 +58,58 @@ MainWindow::MainWindow()
 
 	add(m_vBox);
 
-	{
-		// Add stuff to menu bar
-		Gtk::MenuItem*	file_menubar_item 	= Gtk::manage(new Gtk::MenuItem("File"));
-		Gtk::Menu* 		file_menu 			= Gtk::manage(new Gtk::Menu());
-		Gtk::MenuItem*	file_open 			= Gtk::manage(new Gtk::MenuItem("Open"));
-		Gtk::MenuItem*	file_quit 			= Gtk::manage(new Gtk::MenuItem("Quit"));
+	// Add stuff to menu bar
+	Gtk::MenuItem*	file_menubar_item 	= Gtk::manage(new Gtk::MenuItem("File"));
+	Gtk::Menu* 		file_menu 			= Gtk::manage(new Gtk::Menu());
+	Gtk::MenuItem*	file_open 			= Gtk::manage(new Gtk::MenuItem("Open..."));
+	Gtk::MenuItem*	file_quit 			= Gtk::manage(new Gtk::MenuItem("Quit"));
 
-		Gtk::MenuItem*		view_menubar_item	= Gtk::manage(new Gtk::MenuItem("View"));
-		Gtk::Menu*			view_menu			= Gtk::manage(new Gtk::Menu());
-		Gtk::CheckMenuItem*	view_show_edges		= Gtk::manage(new Gtk::CheckMenuItem("Show Edges"));
+	Gtk::MenuItem*		view_menubar_item	= Gtk::manage(new Gtk::MenuItem("View"));
+	Gtk::Menu*			view_menu			= Gtk::manage(new Gtk::Menu());
+	Gtk::CheckMenuItem*	view_show_edges		= Gtk::manage(new Gtk::CheckMenuItem("Show Edges"));
 
-		file_menu->append(*file_open);
-		file_open->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::do_file_open_dialog));
-		file_open->show();
+	Gtk::MenuItem*	help_menubar_item	= Gtk::manage(new Gtk::MenuItem("Help"));
+	Gtk::Menu*		help_menu			= Gtk::manage(new Gtk::Menu());
+	Gtk::MenuItem*	help_opengl_info			= Gtk::manage(new Gtk::MenuItem("OpenGL Info..."));
 
-		file_menu->append(*file_quit);
-		file_quit->signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
-		file_quit->show();
+	file_menu->append(*file_open);
+	file_open->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::do_file_open_dialog));
+	file_open->show();
 
-		file_menubar_item->set_submenu(*file_menu);
-		file_menubar_item->show();
+	file_menu->append(*file_quit);
+	file_quit->signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
+	file_quit->show();
 
-		view_menu->append(*view_show_edges);
-		view_show_edges->set_active(m_show_edges);	// do this before we connect the callback
-		view_show_edges->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_show_edges));
-		view_show_edges->show();
+	file_menubar_item->set_submenu(*file_menu);
+	file_menubar_item->show();
 
-		view_menubar_item->set_submenu(*view_menu);
-		view_menubar_item->show();
+	view_menu->append(*view_show_edges);
+	view_show_edges->set_active(m_show_edges);	// do this before we connect the callback
+	view_show_edges->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_show_edges));
+	view_show_edges->show();
 
-		m_menuBar.append(*file_menubar_item);
-		m_menuBar.append(*view_menubar_item);
+	view_menubar_item->set_submenu(*view_menu);
+	view_menubar_item->show();
 
-		file_menu->set_accel_group(get_accel_group());
-		file_open->add_accelerator(	"activate", get_accel_group(),
-									GDK_o, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+	help_menu->append(*help_opengl_info);
+	help_opengl_info->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::on_help_opengl_info));
+	help_opengl_info->show();
 
-		view_menu->set_accel_group(get_accel_group());
-		view_show_edges->add_accelerator("activate", get_accel_group(),
-										 GDK_e, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+	help_menubar_item->set_submenu(*help_menu);
+	help_menubar_item->show();
 
-	}
+	m_menuBar.append(*file_menubar_item);
+	m_menuBar.append(*view_menubar_item);
+	m_menuBar.append(*help_menubar_item);
+
+	file_menu->set_accel_group(get_accel_group());
+	file_open->add_accelerator(	"activate", get_accel_group(),
+								GDK_o, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+
+	view_menu->set_accel_group(get_accel_group());
+	view_show_edges->add_accelerator("activate", get_accel_group(),
+									 GDK_e, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+
 
 	m_vBox.pack_start(m_menuBar, Gtk::PACK_SHRINK);
 	m_vBox.pack_end(*m_stlDrawArea, Gtk::PACK_EXPAND_WIDGET, 0);
@@ -162,6 +172,22 @@ void MainWindow::on_view_show_edges()
 	mesh_edges->Suppressed() = !m_show_edges;
 
 	m_stlDrawArea->Redraw();
+}
+
+void MainWindow::on_help_opengl_info()
+{
+	auto renderer_string = (const char*) glGetString(GL_RENDERER);
+	auto version_string = (const char*) glGetString(GL_VERSION);
+	auto vendor_string = (const char*) glGetString(GL_VENDOR);
+	auto sl_string = (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+	std::stringstream ss;
+	ss << "GL_RENDERER : " << renderer_string << std::endl;
+	ss << "GL_VERSION : " << version_string << std::endl;
+	ss << "GL_VENDOR: "	 << vendor_string << std::endl;
+	ss << "GL_SHADING_LANGUAGE_VERSION: " << sl_string << std::endl;
+
+	DoMessageBox("OpenGL Info", ss.str().c_str());
 }
 
 void MainWindow::set_window_title(const Glib::ustring& current_fn)

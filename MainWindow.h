@@ -67,6 +67,7 @@ protected:
 	// Callbacks
 	void do_file_open_dialog();
 	void on_view_show_edges();
+	void on_help_opengl_info();
 
 	// Other stuff
 

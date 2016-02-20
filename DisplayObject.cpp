@@ -108,6 +108,7 @@ bool MeshDisplayObject::is_sharp_edge_boundary(const mesh_facet & f1, const mesh
 void MeshDisplayObject::BuildDisplayLists()
 {
 	glNewList(display_id(), GL_COMPILE);
+
 	const std::vector<mesh_facet_ptr>& mesh_facets = m_mesh->get_facets();
 
 	const maths::vector3d x(1.0, 0.0, 0.0);
