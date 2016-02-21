@@ -23,6 +23,9 @@ int main(int argc, char** argv)
 	std::unique_ptr<MainWindow> window(new MainWindow);	// TODO - file open command-line?
 	window->resize(width_default, height_default);
 
+	if (argc > 1)
+		window->file_open(argv[1]);
+
 	kit.run(*window);
 
 	return 0;

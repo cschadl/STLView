@@ -20,6 +20,9 @@
 #include <memory>
 #include <iomanip>
 
+#include <string.h>
+#include <errno.h>
+
 #ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
 #else
@@ -271,9 +274,8 @@ void MainWindow::file_open(const Glib::ustring& filename)
 		std::ifstream in_stream;
 		in_stream.open(filename.c_str(), std::ifstream::in);
 
-		// Why is the instream not open / good?
-		//if (!in_stream.is_open() || !in_stream.good());
-		//	throw std::runtime_error("Error opening file");
+		if (in_stream.fail())
+			throw std::runtime_error(std::string("Error opening file: ") + ::strerror(errno));
 
 		stl_import importer(in_stream);
 		mesh = std::make_shared<triangle_mesh>(importer.get_facets());

@@ -86,6 +86,7 @@ protected:
 	 */
 	Gtk::MenuItem* get_menu_item(size_t menu_id);
 
+public:
 	void file_open(const Glib::ustring& filename);
 };
 
