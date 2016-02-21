@@ -233,38 +233,32 @@ void MainWindow::set_window_title(const Glib::ustring& current_fn)
 
 Gtk::MenuItem* MainWindow::get_menu_item(size_t menu_id)
 {
-	// TODO - this will only get top-level menu items
-	// A better approach would be to DFS for the desired menu item
-	Gtk::MenuItem* menu_item = nullptr;
+	Gtk::MenuItem* found_menu_item = nullptr;
 
-	std::vector<Gtk::Widget*> menubar_items = m_menuBar.get_children();
+	std::vector<Gtk::Widget*> menu_items = m_menuBar.get_children();
 
-	for (auto widget : menubar_items)
+	while (!menu_items.empty() && !found_menu_item)
 	{
-		if (menu_item)
-			break;
+		auto widget = menu_items.front();
+		menu_items.erase(menu_items.begin());
 
-		auto item = dynamic_cast<Gtk::MenuItem*>(widget);
-		if (!item)
-			continue;
+		auto menu_item = dynamic_cast<Gtk::MenuItem*>(widget);
+		if (!menu_item)
+			continue;	// not a menu item
 
-		auto submenu = item->get_submenu();
-		for (auto submenu_widget : submenu->get_children())
+		size_t menu_item_id = (size_t) menu_item->get_data(MENU_ITEM_DATA_KEYNAME);
+		if (menu_item_id == menu_id)
+			found_menu_item = menu_item;
+
+		Gtk::Menu* submenu = menu_item->get_submenu();
+		if (!found_menu_item && submenu)
 		{
-			if (menu_item)
-				break;
-
-			auto submenu_item = dynamic_cast<Gtk::MenuItem*>(submenu_widget);
-			if (submenu_item)
-			{
-				size_t submenu_id = (size_t) submenu_item->get_data(MENU_ITEM_DATA_KEYNAME);
-				if (submenu_id == menu_id)
-					menu_item = submenu_item;
-			}
+			std::vector<Gtk::Widget*> submenu_children = submenu->get_children();
+			std::copy(submenu_children.begin(), submenu_children.end(), std::back_inserter(menu_items));
 		}
 	}
 
-	return menu_item;
+	return found_menu_item;
 }
 
 void MainWindow::file_open(const Glib::ustring& filename)
