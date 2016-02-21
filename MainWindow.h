@@ -61,7 +61,7 @@ public:
 	 *  @param	msg		msg The message to display
 	 *  @returns		The message box response
 	 */
-	int DoMessageBox(const Glib::ustring& title, const Glib::ustring& msg) const;
+	int DoMessageBox(const Glib::ustring& title, const Glib::ustring& msg);
 
 	void FileOpen(const Glib::ustring& filename);
 

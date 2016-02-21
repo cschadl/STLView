@@ -131,7 +131,7 @@ MainWindow::MainWindow()
 	show_all();
 }
 
-int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& msg) const
+int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& msg)
 {
 	// TODO - this message box is pretty tiny
 	// maybe add an icon or something to it?
@@ -141,6 +141,10 @@ int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& ms
 
 	dlg.get_vbox()->pack_start(label, Gtk::PACK_EXPAND_WIDGET, 0);
 	dlg.add_button("OK", Gtk::RESPONSE_OK);
+
+	dlg.set_transient_for(*this);
+	dlg.set_type_hint(Gdk::WindowTypeHint::WINDOW_TYPE_HINT_DIALOG);
+
 	dlg.show_all();
 
 	return dlg.run();
@@ -166,7 +170,6 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 	{
 		std::stringstream ss;
 		ss << "There was an error reading the STL file: " << std::endl << ex.what();
-		std::cout << ss.str() << std::endl;
 
 		DoMessageBox("Error", ss.str().c_str());
 
