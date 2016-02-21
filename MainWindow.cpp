@@ -141,10 +141,7 @@ int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& ms
 
 	dlg.get_vbox()->pack_start(label, Gtk::PACK_EXPAND_WIDGET, 0);
 	dlg.add_button("OK", Gtk::RESPONSE_OK);
-
 	dlg.set_transient_for(*this);
-	dlg.set_type_hint(Gdk::WindowTypeHint::WINDOW_TYPE_HINT_DIALOG);
-
 	dlg.show_all();
 
 	return dlg.run();
