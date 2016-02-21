@@ -125,7 +125,6 @@ MainWindow::MainWindow()
 	view_show_edges->add_accelerator("activate", get_accel_group(),
 									 GDK_e, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
 
-
 	m_vBox.pack_start(m_menuBar, Gtk::PACK_SHRINK);
 	m_vBox.pack_end(*m_stlDrawArea, Gtk::PACK_EXPAND_WIDGET, 0);
 
@@ -145,6 +144,48 @@ int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& ms
 	dlg.show_all();
 
 	return dlg.run();
+}
+
+void MainWindow::FileOpen(const Glib::ustring& filename)
+{
+	ScopedWaitCursor wc(*this);
+
+	shared_ptr<triangle_mesh> mesh;
+	try
+	{
+		std::ifstream in_stream;
+		in_stream.open(filename.c_str(), std::ifstream::in);
+
+		if (in_stream.fail())
+			throw std::runtime_error(std::string("Error opening file: ") + ::strerror(errno));
+
+		stl_import importer(in_stream);
+		mesh = std::make_shared<triangle_mesh>(importer.get_facets());
+	}
+	catch (std::exception& ex)
+	{
+		std::stringstream ss;
+		ss << "There was an error reading the STL file: " << std::endl << ex.what();
+		std::cout << ss.str() << std::endl;
+
+		DoMessageBox("Error", ss.str().c_str());
+
+		return;
+	}
+
+	// We should have a mesh now
+	if (!mesh)
+		throw std::runtime_error("no mesh (weird)");
+
+	set_window_title(filename);
+
+	Gtk::MenuItem* mesh_info_item = get_menu_item(MENU_ITEM_MESH_INFO_ID);
+	mesh_info_item->set_sensitive(true);
+
+	m_mesh = mesh;
+
+	m_stlDrawArea->InitMeshDO(m_mesh, m_show_edges);
+	m_stlDrawArea->CenterView();
 }
 
 void MainWindow::do_file_open_dialog()
@@ -169,7 +210,7 @@ void MainWindow::do_file_open_dialog()
 
 	fcd.hide_all();
 	if (response == Gtk::RESPONSE_OK)
-		file_open(filename);
+		FileOpen(filename);
 }
 
 void MainWindow::on_view_show_edges()
@@ -249,7 +290,7 @@ Gtk::MenuItem* MainWindow::get_menu_item(size_t menu_id)
 		if (!menu_item)
 			continue;	// not a menu item
 
-		size_t menu_item_id = (size_t) menu_item->get_data(MENU_ITEM_DATA_KEYNAME);
+		size_t const menu_item_id = (size_t) menu_item->get_data(MENU_ITEM_DATA_KEYNAME);
 		if (menu_item_id == menu_id)
 			found_menu_item = menu_item;
 
@@ -264,42 +305,3 @@ Gtk::MenuItem* MainWindow::get_menu_item(size_t menu_id)
 	return found_menu_item;
 }
 
-void MainWindow::file_open(const Glib::ustring& filename)
-{
-	ScopedWaitCursor wc(*this);
-
-	shared_ptr<triangle_mesh> mesh;
-	try
-	{
-		std::ifstream in_stream;
-		in_stream.open(filename.c_str(), std::ifstream::in);
-
-		if (in_stream.fail())
-			throw std::runtime_error(std::string("Error opening file: ") + ::strerror(errno));
-
-		stl_import importer(in_stream);
-		mesh = std::make_shared<triangle_mesh>(importer.get_facets());
-	}
-	catch (std::exception& ex)
-	{
-		std::stringstream ss;
-		ss << "There was an error reading the STL file: " << std::endl << ex.what();
-		std::cout << ss.str() << std::endl;
-
-		DoMessageBox("Error", ss.str().c_str());
-		return;
-	}
-
-	// We should have a mesh now
-	if (!mesh)
-		throw std::runtime_error("no mesh (weird)");
-
-	set_window_title(filename);
-
-	Gtk::MenuItem* mesh_info_item = get_menu_item(MENU_ITEM_MESH_INFO_ID);
-	mesh_info_item->set_sensitive(true);
-
-	m_mesh = mesh;
-	m_stlDrawArea->InitMeshDO(m_mesh, m_show_edges);
-	m_stlDrawArea->CenterView();
-}

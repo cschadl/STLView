@@ -20,11 +20,11 @@ int main(int argc, char** argv)
 	const int width_default = 1024;
 	const int height_default = 768;
 
-	std::unique_ptr<MainWindow> window(new MainWindow);	// TODO - file open command-line?
+	std::unique_ptr<MainWindow> window(new MainWindow);
 	window->resize(width_default, height_default);
 
 	if (argc > 1)
-		window->file_open(argv[1]);
+		window->FileOpen(argv[1]);
 
 	kit.run(*window);
 

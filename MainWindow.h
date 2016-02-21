@@ -63,6 +63,8 @@ public:
 	 */
 	int DoMessageBox(const Glib::ustring& title, const Glib::ustring& msg) const;
 
+	void FileOpen(const Glib::ustring& filename);
+
 protected:
 	// Signal handlers
 	//virtual bool on_key_press_event(GdkEventKey * event);
@@ -85,9 +87,6 @@ protected:
 	 *
 	 */
 	Gtk::MenuItem* get_menu_item(size_t menu_id);
-
-public:
-	void file_open(const Glib::ustring& filename);
 };
 
 #endif /* MAINWINDOW_H_ */
