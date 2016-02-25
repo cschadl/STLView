@@ -341,7 +341,7 @@ Glib::RefPtr<Gdk::Pixbuf> MainWindow::get_application_icon()
 	search_paths.emplace_back("/usr/local" + icon_path);
 
 	auto found_path = std::find_if(search_paths.begin(), search_paths.end(),
-		[](const std::string & path) { return ::access(path.c_str(), W_OK) != -1; });
+		[](const std::string & path) { return ::access(path.c_str(), R_OK) != -1; });
 
 	if (found_path != search_paths.end())
 		app_icon = Gdk::Pixbuf::create_from_file(*found_path);
