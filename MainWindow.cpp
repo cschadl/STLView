@@ -64,6 +64,15 @@ MainWindow::MainWindow()
 {
 	set_window_title("");
 
+	Glib::RefPtr<Gtk::IconTheme> icontheme = Gtk::IconTheme::get_default();
+	Glib::RefPtr<Gdk::Pixbuf> icon =
+			icontheme->load_icon("gtk-convert", 128, Gtk::IconLookupFlags::ICON_LOOKUP_USE_BUILTIN);
+
+	if (icon)
+	{
+		set_icon(icon);
+	}
+
 	add(m_vBox);
 
 	// Add stuff to menu bar
