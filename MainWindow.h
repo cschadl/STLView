@@ -87,6 +87,8 @@ protected:
 	 *
 	 */
 	Gtk::MenuItem* get_menu_item(size_t menu_id);
+
+	static Glib::RefPtr<Gdk::Pixbuf> get_application_icon();
 };
 
 #endif /* MAINWINDOW_H_ */

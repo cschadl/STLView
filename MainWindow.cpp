@@ -22,13 +22,10 @@
 
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
+#include <libgen.h>
 
-#ifndef DEBUG
 const Glib::ustring MainWindow::APP_NAME = "STLView";
-#else
-const Glib::ustring MainWindow::APP_NAME = "STLview (Debug)";
-#endif
-
 const Glib::ustring MainWindow::MENU_ITEM_DATA_KEYNAME = "MENU_ITEM_DATA";
 
 const size_t MainWindow::MENU_ITEM_MESH_INFO_ID = 0x8001;
@@ -64,14 +61,9 @@ MainWindow::MainWindow()
 {
 	set_window_title("");
 
-	auto icon_pixbuf = Gdk::Pixbuf::create_from_file("/home/chris/Documents/666px-Uniform_polyhedron-33-s012.svg.png");
-
-	if (icon_pixbuf)
-	{
-		auto pixbuf_scaled = icon_pixbuf->scale_simple(128, 128, Gdk::INTERP_BILINEAR);
-		if (pixbuf_scaled)
-			set_icon(pixbuf_scaled);
-	}
+	auto app_icon = get_application_icon();
+	if (app_icon)
+		set_icon(app_icon);
 
 	add(m_vBox);
 
@@ -278,8 +270,13 @@ void MainWindow::on_help_opengl_info()
 
 void MainWindow::set_window_title(const Glib::ustring& current_fn)
 {
+	std::string app_name = APP_NAME;
+#ifdef DEBUG
+	app_name += " (Debug)";
+#endif
+
 	std::ostringstream title_ss;
-	title_ss << APP_NAME.c_str() <<  " - " << current_fn.c_str();
+	title_ss << app_name <<  " - " << current_fn.c_str();
 
 	set_title(title_ss.str().c_str());
 }
@@ -314,3 +311,40 @@ Gtk::MenuItem* MainWindow::get_menu_item(size_t menu_id)
 	return found_menu_item;
 }
 
+//static
+Glib::RefPtr<Gdk::Pixbuf> MainWindow::get_application_icon()
+{
+	Glib::RefPtr<Gdk::Pixbuf> app_icon;
+
+	// Search the following paths for the icon file:
+	// <process directory>/../
+	// /usr/share/icons/hicolor/128x128/apps
+	// $HOME/.local/share/icons/hicolor/128x128/apps
+
+	std::string home_dir = std::getenv("HOME");
+
+	std::string process_path;
+	char proccess_path_buf[512];
+	if (::readlink("/proc/self/exe", proccess_path_buf, 512) != -1)
+	{
+		process_path = ::dirname(proccess_path_buf);
+	}
+
+	std::string icon_path = "/share/icons/hicolor/128x128/apps/" + APP_NAME + ".png";
+
+	std::vector<std::string> search_paths;
+
+	if (!process_path.empty())
+		search_paths.emplace_back(process_path + "/../" + APP_NAME + ".png");
+
+	search_paths.emplace_back(home_dir + "/.local" + icon_path);
+	search_paths.emplace_back("/usr/local" + icon_path);
+
+	auto found_path = std::find_if(search_paths.begin(), search_paths.end(),
+		[](const std::string & path) { return ::access(path.c_str(), W_OK) != -1; });
+
+	if (found_path != search_paths.end())
+		app_icon = Gdk::Pixbuf::create_from_file(*found_path);
+
+	return app_icon;
+}
