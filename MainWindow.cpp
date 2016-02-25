@@ -64,13 +64,13 @@ MainWindow::MainWindow()
 {
 	set_window_title("");
 
-	Glib::RefPtr<Gtk::IconTheme> icontheme = Gtk::IconTheme::get_default();
-	Glib::RefPtr<Gdk::Pixbuf> icon =
-			icontheme->load_icon("gtk-convert", 128, Gtk::IconLookupFlags::ICON_LOOKUP_USE_BUILTIN);
+	auto icon_pixbuf = Gdk::Pixbuf::create_from_file("/home/chris/Documents/666px-Uniform_polyhedron-33-s012.svg.png");
 
-	if (icon)
+	if (icon_pixbuf)
 	{
-		set_icon(icon);
+		auto pixbuf_scaled = icon_pixbuf->scale_simple(128, 128, Gdk::INTERP_BILINEAR);
+		if (pixbuf_scaled)
+			set_icon(pixbuf_scaled);
 	}
 
 	add(m_vBox);
