@@ -10,7 +10,7 @@ OUTDIR=Release
 EXECUTABLE=stlview
 
 GLOBS=STLDrawArea.o MainWindow.o GLCamera.o DisplayObject.o stlview.o
-STLIMPORTOBJS=stl_import.o triangle_mesh.o
+STLIMPORTOBJS=stl_importer.o triangle_mesh.o
 
 # Release configuration
 OBJS=$(GLOBS) $(STLIMPORTOBJS)

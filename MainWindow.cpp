@@ -9,7 +9,7 @@
 #include "STLDrawArea.h"
 #include "DisplayObject.h"
 
-#include "stl_import.h"
+#include "stl_importer.h"
 #include "triangle_mesh.h"
 
 #include <gtkmm/accelgroup.h>
@@ -155,14 +155,21 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 	shared_ptr<triangle_mesh> mesh;
 	try
 	{
-		std::ifstream in_stream;
-		in_stream.open(filename.c_str(), std::ifstream::in);
+		auto in_stream = std::make_shared<std::ifstream>();
+		in_stream->open(filename.c_str(), std::fstream::binary);
 
-		if (in_stream.fail())
+		if (in_stream->fail())
 			throw std::runtime_error(std::string("Error opening file: ") + ::strerror(errno));
 
-		stl_import importer(in_stream);
-		mesh = std::make_shared<triangle_mesh>(importer.get_facets());
+		stl_util::stl_importer importer(in_stream);
+
+		std::vector<maths::triangle3d> mesh_facets;
+		if (importer.num_facets_expected() > 0)
+			mesh_facets.reserve(importer.num_facets_expected());
+
+		importer.import(std::back_inserter(mesh_facets));
+
+		mesh = std::make_shared<triangle_mesh>(mesh_facets);
 	}
 	catch (std::exception& ex)
 	{
