@@ -52,15 +52,15 @@ namespace sigc
 
 namespace
 {
-	class triangle_mesh_inserter_thing : public std::iterator<std::output_iterator_tag, void, void, void, void>
+	class mesh_triangle_dispatcher : public std::iterator<std::output_iterator_tag, void, void, void, void>
 	{
 	private:
 		triangle_mesh&	m_mesh;
 		Glib::Dispatcher& m_sig;
 
 	public:
-		triangle_mesh_inserter_thing() = delete;
-		triangle_mesh_inserter_thing(triangle_mesh& mesh, Glib::Dispatcher& sig)
+		mesh_triangle_dispatcher() = delete;
+		mesh_triangle_dispatcher(triangle_mesh& mesh, Glib::Dispatcher& sig)
 		: m_mesh(mesh)
 		, m_sig(sig)
 		{
@@ -68,11 +68,11 @@ namespace
 		}
 
 		/* std::iterator boilerplate */
-		triangle_mesh_inserter_thing& operator*() { return *this; }
-		triangle_mesh_inserter_thing& operator++() { return *this; }
-		triangle_mesh_inserter_thing& operator++(int) { return *this; }
+		mesh_triangle_dispatcher& operator*() { return *this; }
+		mesh_triangle_dispatcher& operator++() { return *this; }
+		mesh_triangle_dispatcher& operator++(int) { return *this; }
 
-		triangle_mesh_inserter_thing& operator=(const maths::triangle3d& t)
+		mesh_triangle_dispatcher& operator=(const maths::triangle3d& t)
 		{
 			m_mesh.add_triangle(t);
 			m_sig();
@@ -96,7 +96,7 @@ namespace
 
 		void run()
 		{
-			m_importer.import(triangle_mesh_inserter_thing(*m_mesh, m_sig_facet_processed));
+			m_importer.import(mesh_triangle_dispatcher(*m_mesh, m_sig_facet_processed));
 			m_sig_done();
 		}
 
