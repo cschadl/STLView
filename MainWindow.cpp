@@ -120,6 +120,7 @@ namespace
 		}
 
 		Glib::Dispatcher& sig_facet_processed() { return m_sig_facet_processed; }
+
 		Glib::Dispatcher& sig_done() { return m_sig_done; }
 
 		void start()
@@ -279,6 +280,7 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 		// hope there isn't a race condition here...
 		process_stl stl_processor(tmesh, importer);
+
 		stl_processor.sig_facet_processed().connect(
 				[num_facets, &count, &progress_bar]() {
 					count++;
@@ -287,9 +289,9 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		stl_processor.sig_done().connect([&progress_dialog]() { progress_dialog.reset(); });
 		stl_processor.start();
 
-		mesh = tmesh;
-
 		progress_dialog->run();
+
+		mesh = tmesh;
 	}
 	catch (std::exception& ex)
 	{

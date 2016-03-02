@@ -14,6 +14,9 @@
 
 int main(int argc, char** argv)
 {
+	if (!Glib::thread_supported())
+		Glib::thread_init();
+
 	Gtk::Main kit(argc, argv);
 	Gtk::GL::init(argc, argv);
 
