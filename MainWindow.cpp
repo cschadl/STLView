@@ -261,21 +261,30 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 			throw std::runtime_error(std::string("Error opening file: ") + ::strerror(errno));
 
 		stl_util::stl_importer importer(in_stream);
+
 		auto tmesh = std::make_shared<triangle_mesh>();
 
 		// Create the progress dialog
-		Gtk::Dialog* progress_dialog = new Gtk::Dialog("Opening " + filename);
+		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + filename));
 		Gtk::ProgressBar progress_bar;
 
 		progress_dialog->set_size_request(300, 50);
+		progress_dialog->set_resizable(false);
 		progress_dialog->get_vbox()->pack_start(progress_bar, Gtk::PACK_EXPAND_WIDGET, 0);
 		progress_dialog->set_transient_for(*this);
 		progress_dialog->show_all();
 
+		size_t const num_facets = importer.num_facets_expected();
+		size_t count = 0;
+
 		// hope there isn't a race condition here...
 		process_stl stl_processor(tmesh, importer);
-		stl_processor.sig_facet_processed().connect(sigc::mem_fun(progress_bar, &Gtk::ProgressBar::pulse));
-		stl_processor.sig_done().connect([progress_dialog]() { delete progress_dialog; });
+		stl_processor.sig_facet_processed().connect(
+				[num_facets, &count, &progress_bar]() {
+					count++;
+					progress_bar.set_fraction((double) count / (double) num_facets);
+				});
+		stl_processor.sig_done().connect([&progress_dialog]() { progress_dialog.reset(); });
 		stl_processor.start();
 
 		mesh = tmesh;
