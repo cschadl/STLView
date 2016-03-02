@@ -25,6 +25,9 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#include <type_traits>
+#include <sigc++/sigc++.h>
+
 const Glib::ustring MainWindow::APP_NAME = "STLView";
 const Glib::ustring MainWindow::MENU_ITEM_DATA_KEYNAME = "MENU_ITEM_DATA";
 
@@ -32,6 +35,102 @@ const size_t MainWindow::MENU_ITEM_MESH_INFO_ID = 0x8001;
 
 using std::shared_ptr;
 using std::unique_ptr;
+
+// Supposedly, this allows lambdas to work with sigc
+namespace sigc
+{
+	template <typename Functor>
+	struct functor_trait<Functor, false>
+	{
+		typedef decltype (::sigc::mem_fun (std::declval<Functor&> (),
+							&Functor::operator())) _intermediate;
+
+		typedef typename _intermediate::result_type result_type;
+		typedef Functor functor_type;
+	};
+};
+
+namespace
+{
+	class triangle_mesh_inserter_thing : public std::iterator<std::output_iterator_tag, void, void, void, void>
+	{
+	private:
+		triangle_mesh&	m_mesh;
+		Glib::Dispatcher& m_sig;
+
+	public:
+		triangle_mesh_inserter_thing() = delete;
+		triangle_mesh_inserter_thing(triangle_mesh& mesh, Glib::Dispatcher& sig)
+		: m_mesh(mesh)
+		, m_sig(sig)
+		{
+
+		}
+
+		/* std::iterator boilerplate */
+		triangle_mesh_inserter_thing& operator*() { return *this; }
+		triangle_mesh_inserter_thing& operator++() { return *this; }
+		triangle_mesh_inserter_thing& operator++(int) { return *this; }
+
+		triangle_mesh_inserter_thing& operator=(const maths::triangle3d& t)
+		{
+			m_mesh.add_triangle(t);
+			m_sig();
+
+			return *this;
+		}
+	};
+
+	class process_stl
+	{
+	private:
+		std::shared_ptr<triangle_mesh>	m_mesh;
+		stl_util::stl_importer&			m_importer;
+		bool							m_done;
+
+		Glib::Thread*			m_thread;
+		Glib::Mutex				m_mutex;
+
+		Glib::Dispatcher		m_sig_facet_processed;
+		Glib::Dispatcher		m_sig_done;
+
+		void run()
+		{
+			m_importer.import(triangle_mesh_inserter_thing(*m_mesh, m_sig_facet_processed));
+			m_sig_done();
+		}
+
+	public:
+		process_stl(const std::shared_ptr<triangle_mesh> & mesh, stl_util::stl_importer& importer)
+		: m_mesh(mesh)
+		, m_importer(importer)
+		, m_done(false)
+		, m_thread(nullptr)
+		{
+
+		}
+
+		~process_stl()
+		{
+			Glib::Mutex::Lock lock(m_mutex);
+			m_done = true;
+
+			if (m_thread)
+				m_thread->join();	// block until exit
+		}
+
+		Glib::Dispatcher& sig_facet_processed() { return m_sig_facet_processed; }
+		Glib::Dispatcher& sig_done() { return m_sig_done; }
+
+		void start()
+		{
+			if (m_thread)
+				return;
+
+			m_thread = Glib::Thread::create(sigc::mem_fun(*this, &process_stl::run));
+		}
+	};
+};
 
 ScopedWaitCursor::ScopedWaitCursor(Gtk::Widget& widget)
 : m_window(widget.get_window())
@@ -162,14 +261,26 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 			throw std::runtime_error(std::string("Error opening file: ") + ::strerror(errno));
 
 		stl_util::stl_importer importer(in_stream);
+		auto tmesh = std::make_shared<triangle_mesh>();
 
-		std::vector<maths::triangle3d> mesh_facets;
-		if (importer.num_facets_expected() > 0)
-			mesh_facets.reserve(importer.num_facets_expected());
+		// Create the progress dialog
+		Gtk::Dialog* progress_dialog = new Gtk::Dialog("Opening " + filename);
+		Gtk::ProgressBar progress_bar;
 
-		importer.import(std::back_inserter(mesh_facets));
+		progress_dialog->set_size_request(300, 50);
+		progress_dialog->get_vbox()->pack_start(progress_bar, Gtk::PACK_EXPAND_WIDGET, 0);
+		progress_dialog->set_transient_for(*this);
+		progress_dialog->show_all();
 
-		mesh = std::make_shared<triangle_mesh>(mesh_facets);
+		// hope there isn't a race condition here...
+		process_stl stl_processor(tmesh, importer);
+		stl_processor.sig_facet_processed().connect(sigc::mem_fun(progress_bar, &Gtk::ProgressBar::pulse));
+		stl_processor.sig_done().connect([progress_dialog]() { delete progress_dialog; });
+		stl_processor.start();
+
+		mesh = tmesh;
+
+		progress_dialog->run();
 	}
 	catch (std::exception& ex)
 	{

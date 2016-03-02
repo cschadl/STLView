@@ -75,6 +75,8 @@ protected:
 	void on_view_mesh_info();
 	void on_help_opengl_info();
 
+	void update_progressbar(Gtk::ProgressBar& pb);
+
 	// Other stuff
 
 	/** Sets the current window title.
