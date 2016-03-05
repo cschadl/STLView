@@ -97,6 +97,7 @@ namespace
 		void run()
 		{
 			m_importer.import(mesh_triangle_dispatcher(*m_mesh, m_sig_facet_processed));
+			m_mesh->center();
 			m_mesh->name() = m_importer.name();
 
 			m_sig_done();
