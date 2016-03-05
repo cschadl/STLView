@@ -97,6 +97,8 @@ namespace
 		void run()
 		{
 			m_importer.import(mesh_triangle_dispatcher(*m_mesh, m_sig_facet_processed));
+			m_mesh->name() = m_importer.name();
+
 			m_sig_done();
 		}
 
@@ -366,7 +368,8 @@ void MainWindow::on_view_mesh_info()
 		return;
 
 	std::stringstream ss;
-	ss	<< "Number of facets: " << m_mesh->get_facets().size() << std::endl
+	ss	<< "Name: " << m_mesh->name() << std::endl
+		<< "Number of facets: " << m_mesh->get_facets().size() << std::endl
 		<< "Number of edges: " << m_mesh->get_edges().size() << std::endl
 		<< "Number of vertices: " << m_mesh->get_vertices().size() << std::endl
 		<< "Number of lamina edges: " << m_mesh->get_lamina_edges().size() << std::endl
