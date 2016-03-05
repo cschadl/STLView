@@ -391,7 +391,6 @@ void MainWindow::on_view_mesh_info()
 
 	std::stringstream ss;
 	ss	<< "Name: " << m_mesh->name() << std::endl
-		<< "Centroid: " << std::setprecision(3) << centroid << std::endl
 		<< "Number of facets: " << m_mesh->get_facets().size() << std::endl
 		<< "Number of edges: " << m_mesh->get_edges().size() << std::endl
 		<< "Number of vertices: " << m_mesh->get_vertices().size() << std::endl
