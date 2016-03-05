@@ -103,7 +103,7 @@ namespace
 		}
 
 	public:
-		process_stl(const std::shared_ptr<triangle_mesh> & mesh, stl_util::stl_importer& importer)
+		process_stl(const std::shared_ptr<triangle_mesh>& mesh, stl_util::stl_importer& importer)
 		: m_mesh(mesh)
 		, m_importer(importer)
 		, m_done(false)
@@ -368,8 +368,14 @@ void MainWindow::on_view_mesh_info()
 	if (!m_mesh)
 		return;
 
+	// Calculate the mesh centroid
+	const auto& mesh_vertices = m_mesh->get_vertices();
+	const maths::vector3d centroid =
+		maths::centroid(mesh_vertices.begin(), mesh_vertices.end(), std::mem_fn(&mesh_vertex::get_point));
+
 	std::stringstream ss;
 	ss	<< "Name: " << m_mesh->name() << std::endl
+		<< "Centroid: " << std::setprecision(3) << centroid << std::endl
 		<< "Number of facets: " << m_mesh->get_facets().size() << std::endl
 		<< "Number of edges: " << m_mesh->get_edges().size() << std::endl
 		<< "Number of vertices: " << m_mesh->get_vertices().size() << std::endl
