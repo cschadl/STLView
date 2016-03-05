@@ -243,6 +243,7 @@ int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& ms
 	Gtk::Label label(msg);
 
 	dlg.get_vbox()->pack_start(label, Gtk::PACK_EXPAND_WIDGET, 0);
+	dlg.get_vbox()->set_border_width(10);
 	dlg.add_button("OK", Gtk::RESPONSE_OK);
 	dlg.set_transient_for(*this);
 	dlg.show_all();
