@@ -51,6 +51,7 @@ private:
 	static const Glib::ustring		MENU_ITEM_DATA_KEYNAME;
 
 	static const size_t				MENU_ITEM_MESH_INFO_ID;
+	static const size_t				MENU_ITEM_ENABLE_BFC_ID;
 
 public:
 	MainWindow();
@@ -72,6 +73,7 @@ protected:
 	// Callbacks
 	void do_file_open_dialog();
 	void on_view_show_edges();
+	void on_view_enable_back_face_culling();
 	void on_view_mesh_info();
 	void on_help_opengl_info();
 

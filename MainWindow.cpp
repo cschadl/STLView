@@ -32,6 +32,7 @@ const Glib::ustring MainWindow::APP_NAME = "STLView";
 const Glib::ustring MainWindow::MENU_ITEM_DATA_KEYNAME = "MENU_ITEM_DATA";
 
 const size_t MainWindow::MENU_ITEM_MESH_INFO_ID = 0x8001;
+const size_t MainWindow::MENU_ITEM_ENABLE_BFC_ID = 0x8002;
 
 using std::shared_ptr;
 using std::unique_ptr;
@@ -179,6 +180,7 @@ MainWindow::MainWindow()
 	Gtk::MenuItem*		view_menubar_item	= Gtk::manage(new Gtk::MenuItem("View"));
 	Gtk::Menu*			view_menu			= Gtk::manage(new Gtk::Menu());
 	Gtk::CheckMenuItem*	view_show_edges		= Gtk::manage(new Gtk::CheckMenuItem("Show Edges"));
+	Gtk::CheckMenuItem* view_enable_bfc		= Gtk::manage(new Gtk::CheckMenuItem("Enable Back-Face Culling"));
 	Gtk::MenuItem* 		view_mesh_info		= Gtk::manage(new Gtk::MenuItem("Mesh Info..."));
 
 	Gtk::MenuItem*	help_menubar_item	= Gtk::manage(new Gtk::MenuItem("Help"));
@@ -200,6 +202,12 @@ MainWindow::MainWindow()
 	view_show_edges->set_active(m_show_edges);	// do this before we connect the callback
 	view_show_edges->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_show_edges));
 	view_show_edges->show();
+
+	view_menu->append(*view_enable_bfc);
+	view_enable_bfc->set_active(true);
+	view_enable_bfc->set_data(MENU_ITEM_DATA_KEYNAME, (void *) MENU_ITEM_ENABLE_BFC_ID);
+	view_enable_bfc->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_enable_back_face_culling));
+	view_enable_bfc->show();
 
 	view_menu->append(*view_mesh_info);
 	view_mesh_info->set_sensitive(!!m_mesh);
@@ -361,6 +369,13 @@ void MainWindow::on_view_show_edges()
 
 	mesh_edges->Suppressed() = !m_show_edges;
 
+	m_stlDrawArea->Redraw();
+}
+
+void MainWindow::on_view_enable_back_face_culling()
+{
+	bool enable_bfc = m_stlDrawArea->BackFaceCullEnabled();
+	m_stlDrawArea->BackFaceCullEnabled() = !enable_bfc;
 	m_stlDrawArea->Redraw();
 }
 

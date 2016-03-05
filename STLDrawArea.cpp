@@ -23,7 +23,7 @@ using std::make_shared;
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
 , m_zoom_factor(1.0f)
-
+, m_enable_back_face_cull(true)
 {
 	// Initialize a double-buffered RGB visual
 	const Gdk::GL::ConfigMode mode = Gdk::GL::MODE_RGB | Gdk::GL::MODE_DEPTH | Gdk::GL::MODE_DOUBLE;
@@ -179,7 +179,9 @@ void STLDrawArea::Redraw()
 	// Load "view" matrix onto GL_MODELVIEW stack
 	m_camera.GetMatrixForModelview();
 
-	glEnable(GL_CULL_FACE);
+	if (m_enable_back_face_cull)
+		glEnable(GL_CULL_FACE);
+
 	// Draw stuff
 	glPushMatrix();
 	glMultMatrixf(m_obj_rot_matrix);
@@ -189,7 +191,9 @@ void STLDrawArea::Redraw()
 		m_mesh_do->Draw();
 
 	glPopMatrix();
-	glDisable(GL_CULL_FACE);
+
+	if (m_enable_back_face_cull)
+		glDisable(GL_CULL_FACE);
 
 	assert(glGetError() == GL_NO_ERROR);
 

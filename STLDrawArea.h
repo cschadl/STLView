@@ -35,6 +35,8 @@ private:
 	GLfloat			m_zoom_factor;
 	GLCamera		m_camera;
 
+	bool			m_enable_back_face_cull;
+
 	std::shared_ptr<DisplayObject>	m_mesh_do;
 
 public:
@@ -49,6 +51,9 @@ public:
 
 	void Redraw();		///< Redraws the view
 	void CenterView();	///< Centers the view and redraws
+
+	/// Enables / disables back-face culling on next Redraw()
+	bool& BackFaceCullEnabled() { return m_enable_back_face_cull; }
 
 protected:
 
