@@ -51,7 +51,6 @@ private:
 	static const Glib::ustring		MENU_ITEM_DATA_KEYNAME;
 
 	static const size_t				MENU_ITEM_MESH_INFO_ID;
-	static const size_t				MENU_ITEM_ENABLE_BFC_ID;
 
 public:
 	MainWindow();

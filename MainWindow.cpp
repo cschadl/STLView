@@ -32,7 +32,6 @@ const Glib::ustring MainWindow::APP_NAME = "STLView";
 const Glib::ustring MainWindow::MENU_ITEM_DATA_KEYNAME = "MENU_ITEM_DATA";
 
 const size_t MainWindow::MENU_ITEM_MESH_INFO_ID = 0x8001;
-const size_t MainWindow::MENU_ITEM_ENABLE_BFC_ID = 0x8002;
 
 using std::shared_ptr;
 using std::unique_ptr;
@@ -205,7 +204,6 @@ MainWindow::MainWindow()
 
 	view_menu->append(*view_enable_bfc);
 	view_enable_bfc->set_active(true);
-	view_enable_bfc->set_data(MENU_ITEM_DATA_KEYNAME, (void *) MENU_ITEM_ENABLE_BFC_ID);
 	view_enable_bfc->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_view_enable_back_face_culling));
 	view_enable_bfc->show();
 
@@ -255,6 +253,7 @@ int MainWindow::DoMessageBox(const Glib::ustring& title, const Glib::ustring& ms
 	dlg.get_vbox()->set_border_width(10);
 	dlg.add_button("OK", Gtk::RESPONSE_OK);
 	dlg.set_transient_for(*this);
+	dlg.set_resizable(false);
 	dlg.show_all();
 
 	return dlg.run();
@@ -383,11 +382,6 @@ void MainWindow::on_view_mesh_info()
 {
 	if (!m_mesh)
 		return;
-
-	// Calculate the mesh centroid
-	const auto& mesh_vertices = m_mesh->get_vertices();
-	const maths::vector3d centroid =
-		maths::centroid(mesh_vertices.begin(), mesh_vertices.end(), std::mem_fn(&mesh_vertex::get_point));
 
 	std::stringstream ss;
 	ss	<< "Name: " << m_mesh->name() << std::endl
