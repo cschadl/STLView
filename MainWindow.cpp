@@ -56,13 +56,13 @@ namespace
 	{
 	private:
 		triangle_mesh&	m_mesh;
-		Glib::Dispatcher& m_sig;
+		Glib::Mutex&	m_mutex;
 
 	public:
 		mesh_triangle_dispatcher() = delete;
-		mesh_triangle_dispatcher(triangle_mesh& mesh, Glib::Dispatcher& sig)
+		mesh_triangle_dispatcher(triangle_mesh& mesh, Glib::Mutex& mutex)
 		: m_mesh(mesh)
-		, m_sig(sig)
+		, m_mutex(mutex)
 		{
 
 		}
@@ -74,9 +74,9 @@ namespace
 
 		mesh_triangle_dispatcher& operator=(const maths::triangle3d& t)
 		{
-			m_mesh.add_triangle(t);
-			m_sig();
+			Glib::Mutex::Lock lock(m_mutex);
 
+			m_mesh.add_triangle(t);
 			return *this;
 		}
 	};
@@ -84,19 +84,21 @@ namespace
 	class process_stl
 	{
 	private:
-		std::shared_ptr<triangle_mesh>	m_mesh;
-		stl_util::stl_importer&			m_importer;
-		bool							m_done;
+		std::shared_ptr<triangle_mesh>				m_mesh;
+		std::unique_ptr<mesh_triangle_dispatcher>	m_dispatcher;
+		stl_util::stl_importer&						m_importer;
+		bool										m_done;
 
 		Glib::Thread*			m_thread;
 		Glib::Mutex				m_mutex;
 
-		Glib::Dispatcher		m_sig_facet_processed;
 		Glib::Dispatcher		m_sig_done;
 
 		void run()
 		{
-			m_importer.import(mesh_triangle_dispatcher(*m_mesh, m_sig_facet_processed));
+			m_dispatcher.reset(new mesh_triangle_dispatcher(*m_mesh, m_mutex));
+			m_importer.import(*m_dispatcher);
+
 			m_mesh->center();
 			m_mesh->name() = m_importer.name();
 
@@ -122,9 +124,16 @@ namespace
 				m_thread->join();	// block until exit
 		}
 
-		Glib::Dispatcher& sig_facet_processed() { return m_sig_facet_processed; }
+		Glib::Mutex& mutex() { return m_mutex; }
 
 		Glib::Dispatcher& sig_done() { return m_sig_done; }
+
+		size_t get_facets_processed()
+		{
+			Glib::Mutex::Lock lock(m_mutex);
+
+			return m_mesh->get_facets().size();
+		}
 
 		void start()
 		{
@@ -277,27 +286,55 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		auto tmesh = std::make_shared<triangle_mesh>();
 
 		// Create the progress dialog
-		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + filename));
+		char* path = new char[filename.length() + 1];
+		std::copy(filename.begin(), filename.end(), path);
+		const char* fn_base = ::basename(path);
+		delete[] path;
+
+		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + Glib::ustring(fn_base)));
 		Gtk::ProgressBar progress_bar;
 
 		progress_dialog->set_size_request(300, 50);
+		progress_dialog->set_border_width(5);
 		progress_dialog->set_resizable(false);
+		progress_dialog->set_deletable(false);
 		progress_dialog->get_vbox()->pack_start(progress_bar, Gtk::PACK_EXPAND_WIDGET, 0);
 		progress_dialog->set_transient_for(*this);
 		progress_dialog->show_all();
 
 		size_t const num_facets = importer.num_facets_expected();
-		size_t count = 0;
 
 		// hope there isn't a race condition here...
 		process_stl stl_processor(tmesh, importer);
 
-		stl_processor.sig_facet_processed().connect(
-				[num_facets, &count, &progress_bar]() {
-					count++;
-					progress_bar.set_fraction((double) count / (double) num_facets);
+		bool done = false;
+		Glib::Mutex done_mutex;
+
+		int const timeout_value_ms = 5;
+		auto timeout_connection = Glib::signal_timeout().connect(
+			[&stl_processor, &progress_bar, &num_facets, &done_mutex, &done]()
+			{
+				Glib::Mutex::Lock lock(done_mutex);
+				if (done)
+					return false;
+
+				progress_bar.set_fraction((double) stl_processor.get_facets_processed() / (double) num_facets);
+
+				return true;
+			}, timeout_value_ms);
+
+		stl_processor.sig_done().connect(
+				[&progress_dialog, &done_mutex, &done, &timeout_connection]()
+				{
+					Glib::Mutex::Lock lock(done_mutex);
+					done = true;
+
+					// I guess we shouldn't rely on the main loop to do this
+					timeout_connection.disconnect();
+
+					progress_dialog.reset();
 				});
-		stl_processor.sig_done().connect([&progress_dialog]() { progress_dialog.reset(); });
+
 		stl_processor.start();
 
 		progress_dialog->run();
