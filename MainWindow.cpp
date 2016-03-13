@@ -291,7 +291,7 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		const char* fn_base = ::basename(path);
 		delete[] path;
 
-		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + Glib::ustring(fn_base)));
+		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + Glib::ustring(fn_base) + " ..."));
 		Gtk::ProgressBar progress_bar;
 
 		progress_dialog->set_size_request(300, 50);
@@ -304,13 +304,12 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 		size_t const num_facets = importer.num_facets_expected();
 
-		// hope there isn't a race condition here...
 		process_stl stl_processor(tmesh, importer);
 
 		bool done = false;
 		Glib::Mutex done_mutex;
 
-		int const timeout_value_ms = 5;
+		int const update_value_ms = 5;
 		auto timeout_connection = Glib::signal_timeout().connect(
 			[&stl_processor, &progress_bar, &num_facets, &done_mutex, &done]()
 			{
@@ -321,7 +320,7 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 				progress_bar.set_fraction((double) stl_processor.get_facets_processed() / (double) num_facets);
 
 				return true;
-			}, timeout_value_ms);
+			}, update_value_ms);
 
 		stl_processor.sig_done().connect(
 				[&progress_dialog, &done_mutex, &done, &timeout_connection]()
