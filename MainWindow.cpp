@@ -342,38 +342,38 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 			}, update_value_ms);
 
 		auto cancel_connection = open_cancel->signal_clicked().connect(
-						[&]()
-						{
-							Glib::Mutex::Lock lock(done_mutex);
-							done = true;
+			[&]()
+			{
+				Glib::Mutex::Lock lock(done_mutex);
+				done = true;
 
-							timeout_connection.disconnect();
-							stl_processor.cancel();
+				timeout_connection.disconnect();
+				stl_processor.cancel();
 
-							progress_dialog.reset();
+				progress_dialog.reset();
 
-							tmesh.reset();
-						});
+				tmesh.reset();
+			});
 
 		stl_processor.sig_done().connect(
-				[&]()
-				{
-					Glib::Mutex::Lock lock(done_mutex);
-					done = true;
+			[&]()
+			{
+				Glib::Mutex::Lock lock(done_mutex);
+				done = true;
 
-					cancel_connection.disconnect();
+				cancel_connection.disconnect();
 
-					progress_bar.set_fraction(1.0);
-					open_cancel->set_sensitive(false);
+				progress_bar.set_fraction(1.0);
+				open_cancel->set_sensitive(false);
 
-					progress_dialog->queue_draw();
-					Gtk::Main::iteration();
+				progress_dialog->queue_draw();
+				Gtk::Main::iteration();
 
-					// I guess we shouldn't rely on the main loop to do this
-					timeout_connection.disconnect();
+				// I guess we shouldn't rely on the main loop to do this
+				timeout_connection.disconnect();
 
-					progress_dialog.reset();
-				});
+				progress_dialog.reset();
+			});
 
 		stl_processor.start();
 
@@ -382,7 +382,7 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		if (tmesh)
 			mesh = tmesh;
 		else
-			return;	//user canceled?
+			return;	// user canceled
 	}
 	catch (std::exception& ex)
 	{
