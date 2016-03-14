@@ -57,12 +57,14 @@ namespace
 	private:
 		triangle_mesh&	m_mesh;
 		Glib::Mutex&	m_mutex;
+		bool&			m_done;
 
 	public:
 		mesh_triangle_dispatcher() = delete;
-		mesh_triangle_dispatcher(triangle_mesh& mesh, Glib::Mutex& mutex)
+		mesh_triangle_dispatcher(triangle_mesh& mesh, Glib::Mutex& mutex, bool& done)
 		: m_mesh(mesh)
 		, m_mutex(mutex)
+		, m_done(done)
 		{
 
 		}
@@ -76,7 +78,11 @@ namespace
 		{
 			Glib::Mutex::Lock lock(m_mutex);
 
-			m_mesh.add_triangle(t);
+			if (!m_done)
+				m_mesh.add_triangle(t);
+			else
+				throw stl_util::import_cancel_exception();
+
 			return *this;
 		}
 	};
@@ -96,13 +102,17 @@ namespace
 
 		void run()
 		{
-			m_dispatcher.reset(new mesh_triangle_dispatcher(*m_mesh, m_mutex));
+			m_dispatcher.reset(new mesh_triangle_dispatcher(*m_mesh, m_mutex, m_done));
 			m_importer.import(*m_dispatcher);
 
-			m_mesh->center();
-			m_mesh->name() = m_importer.name();
+			//Glib::Mutex::Lock lock(m_mutex);
+			if (!m_done)	// user canceled
+			{
+				m_mesh->center();
+				m_mesh->name() = m_importer.name();
 
-			m_sig_done();
+				m_sig_done();
+			}
 		}
 
 	public:
@@ -117,9 +127,6 @@ namespace
 
 		~process_stl()
 		{
-			Glib::Mutex::Lock lock(m_mutex);
-			m_done = true;
-
 			if (m_thread)
 				m_thread->join();	// block until exit
 		}
@@ -141,6 +148,17 @@ namespace
 				return;
 
 			m_thread = Glib::Thread::create(sigc::mem_fun(*this, &process_stl::run));
+		}
+
+		void cancel()
+		{
+			if (!m_thread)
+				return;
+
+			{
+				Glib::Mutex::Lock lock(m_mutex);
+				m_done = true;
+			}
 		}
 	};
 };
@@ -294,10 +312,11 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + Glib::ustring(fn_base) + " ..."));
 		Gtk::ProgressBar progress_bar;
 
-		progress_dialog->set_size_request(300, 50);
+		progress_dialog->set_size_request(300, 75);
 		progress_dialog->set_border_width(5);
 		progress_dialog->set_resizable(false);
 		progress_dialog->set_deletable(false);
+		Gtk::Button* open_cancel = progress_dialog->add_button("Cancel", Gtk::RESPONSE_CANCEL);
 		progress_dialog->get_vbox()->pack_start(progress_bar, Gtk::PACK_EXPAND_WIDGET, 0);
 		progress_dialog->set_transient_for(*this);
 		progress_dialog->show_all();
@@ -311,7 +330,7 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 		int const update_value_ms = 5;
 		auto timeout_connection = Glib::signal_timeout().connect(
-			[&stl_processor, &progress_bar, &num_facets, &done_mutex, &done]()
+			[&]()
 			{
 				Glib::Mutex::Lock lock(done_mutex);
 				if (done)
@@ -322,11 +341,33 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 				return true;
 			}, update_value_ms);
 
+		auto cancel_connection = open_cancel->signal_clicked().connect(
+						[&]()
+						{
+							Glib::Mutex::Lock lock(done_mutex);
+							done = true;
+
+							timeout_connection.disconnect();
+							stl_processor.cancel();
+
+							progress_dialog.reset();
+
+							tmesh.reset();
+						});
+
 		stl_processor.sig_done().connect(
-				[&progress_dialog, &done_mutex, &done, &timeout_connection]()
+				[&]()
 				{
 					Glib::Mutex::Lock lock(done_mutex);
 					done = true;
+
+					cancel_connection.disconnect();
+
+					progress_bar.set_fraction(1.0);
+					open_cancel->set_sensitive(false);
+
+					progress_dialog->queue_draw();
+					Gtk::Main::iteration();
 
 					// I guess we shouldn't rely on the main loop to do this
 					timeout_connection.disconnect();
@@ -338,7 +379,10 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 		progress_dialog->run();
 
-		mesh = tmesh;
+		if (tmesh)
+			mesh = tmesh;
+		else
+			return;	//user canceled?
 	}
 	catch (std::exception& ex)
 	{
