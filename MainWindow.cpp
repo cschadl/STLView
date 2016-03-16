@@ -325,17 +325,10 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 		process_stl stl_processor(tmesh, importer);
 
-		bool done = false;
-		Glib::Mutex done_mutex;
-
 		int const update_value_ms = 5;
 		auto timeout_connection = Glib::signal_timeout().connect(
 			[&]()
 			{
-				Glib::Mutex::Lock lock(done_mutex);
-				if (done)
-					return false;
-
 				progress_bar.set_fraction((double) stl_processor.get_facets_processed() / (double) num_facets);
 
 				return true;
@@ -344,9 +337,6 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		auto cancel_connection = open_cancel->signal_clicked().connect(
 			[&]()
 			{
-				Glib::Mutex::Lock lock(done_mutex);
-				done = true;
-
 				timeout_connection.disconnect();
 				stl_processor.cancel();
 
@@ -358,9 +348,6 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		stl_processor.sig_done().connect(
 			[&]()
 			{
-				Glib::Mutex::Lock lock(done_mutex);
-				done = true;
-
 				cancel_connection.disconnect();
 
 				progress_bar.set_fraction(1.0);
@@ -378,6 +365,9 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 		stl_processor.start();
 
 		progress_dialog->run();
+
+		if (timeout_connection.connected())
+			timeout_connection.disconnect();
 
 		if (tmesh)
 			mesh = tmesh;
