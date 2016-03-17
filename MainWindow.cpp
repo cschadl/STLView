@@ -305,11 +305,12 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 		// Create the progress dialog
 		char* path = new char[filename.length() + 1];
+		path[filename.length()] = '\0';
 		std::copy(filename.begin(), filename.end(), path);
-		const char* fn_base = ::basename(path);
+		Glib::ustring fn_base(::basename(path));
 		delete[] path;
 
-		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + Glib::ustring(fn_base) + " ..."));
+		std::unique_ptr<Gtk::Dialog> progress_dialog(new Gtk::Dialog("Opening " + fn_base + " ..."));
 		Gtk::ProgressBar progress_bar;
 
 		progress_dialog->set_size_request(300, 75);
