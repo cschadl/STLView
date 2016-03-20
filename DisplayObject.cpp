@@ -192,20 +192,32 @@ void MeshEdgesDisplayObject::BuildDisplayLists()
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
 	glBegin(GL_LINES);
-	const std::vector<mesh_edge_ptr>& mesh_edges = m_mesh->get_edges();
-	for (const mesh_edge_ptr& edge : mesh_edges)
-	{
-		const vector3d start_pt = edge->get_vertex()->get_point();
-		const vector3d end_pt = edge->get_end_vertex()->get_point();
 
-		if (!edge->is_lamina())
-			glColor3d(0.0, 0.0, 0.0);
-		else
-			glColor3d(1.0, 1.0, 0.0);
+	// First, do the edges in the mesh
+	glColor3d(0, 0, 0);
+
+	const auto& mesh_edges = m_mesh->get_edges();
+	for (const auto& mesh_edge : mesh_edges)
+	{
+		const vector3d start_pt = mesh_edge->p0();
+		const vector3d end_pt = mesh_edge->p1();
 
 		glVertex3d(start_pt.x(), start_pt.y(), start_pt.z());
 		glVertex3d(end_pt.x(), end_pt.y(), end_pt.z());
 	}
+
+	// Next, do the lamina halfedges
+	glColor3d(1.0, 1.0, 0.0);
+	const auto lamina_halfedges = m_mesh->get_lamina_halfedges();
+	for (const auto& mesh_lamina_he : lamina_halfedges)
+	{
+		const vector3d start_pt = mesh_lamina_he->get_start_point();
+		const vector3d end_pt = mesh_lamina_he->get_end_point();
+
+		glVertex3d(start_pt.x(), start_pt.y(), start_pt.z());
+		glVertex3d(end_pt.x(), end_pt.y(), end_pt.z());
+	}
+
 	glEnd(); // GL_LINES
 
 	glDisable(GL_BLEND);

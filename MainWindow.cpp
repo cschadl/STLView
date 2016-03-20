@@ -460,7 +460,7 @@ void MainWindow::on_view_mesh_info()
 	ScopedWaitCursor wc(*this);
 
 	int const num_facets = m_mesh->get_facets().size();
-	int const num_edges = m_mesh->get_edges().size() / 2;	// TODO - fix this (these are actually halfedges...)
+	int const num_edges = m_mesh->get_edges().size();
 	int const num_vertices = m_mesh->get_vertices().size();
 
 	std::stringstream ss;
@@ -469,7 +469,7 @@ void MainWindow::on_view_mesh_info()
 		<< "Number of edges: " << num_edges << std::endl
 		<< "Number of vertices: " << num_vertices << std::endl
 		<< "Euler characteristic " << (num_vertices - num_edges + num_facets) << std::endl
-		<< "Number of lamina edges: " << m_mesh->get_lamina_edges().size() << std::endl
+		<< "Number of lamina edges: " << m_mesh->get_lamina_halfedges().size() << std::endl
 		<< "Volume: " << m_mesh->volume() << std::endl
 		<< "Area: " << m_mesh->area() << std::endl
 		<< "Is Closed: " << (m_mesh->is_manifold() ? "TRUE" : "FALSE") << std::endl << std::endl
