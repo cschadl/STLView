@@ -8,6 +8,9 @@
 #include "STLDrawArea.h"
 #include "DisplayObject.h"
 #include "triangle_mesh.h"
+
+#include <boost/math/constants/constants.hpp>
+
 #include <assert.h>
 
 using Glib::RefPtr;
@@ -19,6 +22,8 @@ using maths::vector3d;
 
 using std::shared_ptr;
 using std::make_shared;
+
+
 
 STLDrawArea::STLDrawArea()
 : m_is_dragging(false)
@@ -62,7 +67,7 @@ vector3f STLDrawArea::get_trackball_point(int x, int y) const
 	const vector2f dxy = get_drag_point(x, y);
 	const float dxy_len = dxy.length();
 
-	const float pi2 = M_2_PI;
+	constexpr float pi2 = 2.0f / boost::math::constants::pi<float>();
 	const float dz = cos(pi2 * dxy_len < 1.0 ? dxy_len : 1.0);
 
 	const vector3f dxyz(dxy.x(), dxy.y(), dz);

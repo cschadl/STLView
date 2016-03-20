@@ -262,6 +262,9 @@ MainWindow::MainWindow()
 	view_show_edges->add_accelerator("activate", get_accel_group(),
 									 GDK_e, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
 
+	view_mesh_info->add_accelerator("activate", get_accel_group(),
+									GDK_equal, Gdk::ModifierType::BUTTON1_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+
 	m_vBox.pack_start(m_menuBar, Gtk::PACK_SHRINK);
 	m_vBox.pack_end(*m_stlDrawArea, Gtk::PACK_EXPAND_WIDGET, 0);
 
@@ -454,11 +457,18 @@ void MainWindow::on_view_mesh_info()
 	if (!m_mesh)
 		return;
 
+	ScopedWaitCursor wc(*this);
+
+	int const num_facets = m_mesh->get_facets().size();
+	int const num_edges = m_mesh->get_edges().size() / 2;	// TODO - fix this (these are actually halfedges...)
+	int const num_vertices = m_mesh->get_vertices().size();
+
 	std::stringstream ss;
 	ss	<< "Name: " << m_mesh->name() << std::endl
-		<< "Number of facets: " << m_mesh->get_facets().size() << std::endl
-		<< "Number of edges: " << m_mesh->get_edges().size() << std::endl
-		<< "Number of vertices: " << m_mesh->get_vertices().size() << std::endl
+		<< "Number of facets: " << num_facets << std::endl
+		<< "Number of edges: " << num_edges << std::endl
+		<< "Number of vertices: " << num_vertices << std::endl
+		<< "Euler characteristic " << (num_vertices - num_edges + num_facets) << std::endl
 		<< "Number of lamina edges: " << m_mesh->get_lamina_edges().size() << std::endl
 		<< "Volume: " << m_mesh->volume() << std::endl
 		<< "Area: " << m_mesh->area() << std::endl
