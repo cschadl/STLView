@@ -457,28 +457,34 @@ void MainWindow::on_view_mesh_info()
 	if (!m_mesh)
 		return;
 
-	ScopedWaitCursor wc(*this);
+	std::string mesh_info;
 
-	int const num_facets = m_mesh->get_facets().size();
-	int const num_edges = m_mesh->get_edges().size();
-	int const num_vertices = m_mesh->get_vertices().size();
+	{
+		ScopedWaitCursor wc(*this);
 
-	std::stringstream ss;
-	ss	<< "Name: " << m_mesh->name() << std::endl
-		<< "Number of facets: " << num_facets << std::endl
-		<< "Number of edges: " << num_edges << std::endl
-		<< "Number of vertices: " << num_vertices << std::endl
-		<< "Euler characteristic " << (num_vertices - num_edges + num_facets) << std::endl
-		<< "Number of lamina edges: " << m_mesh->get_lamina_halfedges().size() << std::endl
-		<< "Volume: " << m_mesh->volume() << std::endl
-		<< "Area: " << m_mesh->area() << std::endl
-		<< "Is Closed: " << (m_mesh->is_manifold() ? "TRUE" : "FALSE") << std::endl << std::endl
-		<< "BBox dimensions: " << std::endl <<
-		std::setprecision(4) << "X: " << m_mesh->bbox().extent_x() << " "
-							 << "Y: " << m_mesh->bbox().extent_y() << " "
-							 << "Z: " << m_mesh->bbox().extent_z() << std::endl;
+		int const num_facets = m_mesh->get_facets().size();
+		int const num_edges = m_mesh->get_edges().size();
+		int const num_vertices = m_mesh->get_vertices().size();
 
-	DoMessageBox("Mesh Info", ss.str().c_str());
+		std::stringstream ss;
+		ss	<< "Name: " << m_mesh->name() << std::endl
+			<< "Number of facets: " << num_facets << std::endl
+			<< "Number of edges: " << num_edges << std::endl
+			<< "Number of vertices: " << num_vertices << std::endl
+			<< "Euler characteristic " << (num_vertices - num_edges + num_facets) << std::endl
+			<< "Number of lamina edges: " << m_mesh->get_lamina_halfedges().size() << std::endl
+			<< "Volume: " << m_mesh->volume() << std::endl
+			<< "Area: " << m_mesh->area() << std::endl
+			<< "Is Closed: " << (m_mesh->is_manifold() ? "TRUE" : "FALSE") << std::endl << std::endl
+			<< "BBox dimensions: " << std::endl <<
+			std::setprecision(4) << "X: " << m_mesh->bbox().extent_x() << " "
+								 << "Y: " << m_mesh->bbox().extent_y() << " "
+								 << "Z: " << m_mesh->bbox().extent_z() << std::endl;
+
+		mesh_info = ss.str();
+	}
+
+	DoMessageBox("Mesh Info", mesh_info);
 }
 
 void MainWindow::on_help_opengl_info()
