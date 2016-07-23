@@ -31,7 +31,8 @@
 const Glib::ustring MainWindow::APP_NAME = "STLView";
 const Glib::ustring MainWindow::MENU_ITEM_DATA_KEYNAME = "MENU_ITEM_DATA";
 
-const size_t MainWindow::MENU_ITEM_MESH_INFO_ID = 0x8001;
+const size_t MainWindow::MENU_ITEM_MESH_INFO_ID 			= 0x8001;
+const size_t MainWindow::MENU_ITEM_FILE_EXPORT_POINTS_ID	= 0x8002;
 
 using std::shared_ptr;
 using std::unique_ptr;
@@ -201,6 +202,7 @@ MainWindow::MainWindow()
 	Gtk::MenuItem*	file_menubar_item 	= Gtk::manage(new Gtk::MenuItem("File"));
 	Gtk::Menu* 		file_menu 			= Gtk::manage(new Gtk::Menu());
 	Gtk::MenuItem*	file_open 			= Gtk::manage(new Gtk::MenuItem("Open..."));
+	Gtk::MenuItem*	file_write_vertices	= Gtk::manage(new Gtk::MenuItem("Export Vertices to File..."));
 	Gtk::MenuItem*	file_quit 			= Gtk::manage(new Gtk::MenuItem("Quit"));
 
 	Gtk::MenuItem*		view_menubar_item	= Gtk::manage(new Gtk::MenuItem("View"));
@@ -216,6 +218,12 @@ MainWindow::MainWindow()
 	file_menu->append(*file_open);
 	file_open->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::do_file_open_dialog));
 	file_open->show();
+
+	file_menu->append(*file_write_vertices);
+	file_write_vertices->set_sensitive(!!m_mesh);
+	file_write_vertices->set_data(MENU_ITEM_DATA_KEYNAME, (void *) MENU_ITEM_FILE_EXPORT_POINTS_ID);
+	file_write_vertices->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::on_file_export_vertices));
+	file_write_vertices->show();
 
 	file_menu->append(*file_quit);
 	file_quit->signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
@@ -394,8 +402,11 @@ void MainWindow::FileOpen(const Glib::ustring& filename)
 
 	set_window_title(filename);
 
+	// This is fuckin awful
 	Gtk::MenuItem* mesh_info_item = get_menu_item(MENU_ITEM_MESH_INFO_ID);
+	Gtk::MenuItem* export_vertices_item = get_menu_item(MENU_ITEM_FILE_EXPORT_POINTS_ID);
 	mesh_info_item->set_sensitive(true);
+	export_vertices_item->set_sensitive(true);
 
 	m_mesh = mesh;
 
@@ -426,6 +437,62 @@ void MainWindow::do_file_open_dialog()
 	fcd.hide_all();
 	if (response == Gtk::RESPONSE_OK)
 		FileOpen(filename);
+}
+
+void MainWindow::on_file_export_vertices()
+{
+	if (!m_mesh)
+		return;
+
+	Gtk::FileChooserDialog fcd(*this /* parent */, "Export Vertices");
+	fcd.set_action(Gtk::FILE_CHOOSER_ACTION_SAVE);
+	fcd.set_do_overwrite_confirmation(true);
+
+	// Set default filename
+	std::string fn_str(m_current_filename);
+	size_t lastdot = fn_str.find_last_of(".");
+	fn_str.substr(0, lastdot);
+
+	Glib::ustring export_fn = fn_str + ".txt";
+	fcd.set_filename(export_fn);
+
+	fcd.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_OK);
+	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+
+	Gtk::FileFilter txt_files;
+	txt_files.set_name("Text");
+	txt_files.add_pattern("*.txt");
+	fcd.add_filter(txt_files);
+
+	Gtk::FileFilter all_files;
+	all_files.set_name("All Files");
+	all_files.add_pattern("*");
+	fcd.add_filter(all_files);
+
+	const int response = fcd.run();
+	const Glib::ustring filename = fcd.get_filename();
+	fcd.hide_all();
+
+	if (response != Gtk::RESPONSE_OK)
+		return;
+
+	const auto& vertices = m_mesh->get_vertices();
+
+	std::ofstream os(filename.c_str());
+	if (os.fail())
+	{
+		DoMessageBox("Error", "Error opening file");
+		return;
+	}
+
+	ScopedWaitCursor wc(*this);
+
+	for (const auto& vert : vertices)
+	{
+		const auto& vp = vert->get_point();
+
+		os << vp.x() << " " << vp.y() << " " << vp.z() << std::endl;
+	}
 }
 
 void MainWindow::on_view_show_edges()
@@ -510,8 +577,10 @@ void MainWindow::set_window_title(const Glib::ustring& current_fn)
 	app_name += " (Debug)";
 #endif
 
+	m_current_filename = current_fn;
+
 	std::ostringstream title_ss;
-	title_ss << app_name <<  " - " << current_fn.c_str();
+	title_ss << app_name <<  " - " << m_current_filename.c_str();
 
 	set_title(title_ss.str().c_str());
 }

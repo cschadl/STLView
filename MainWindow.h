@@ -45,12 +45,15 @@ private:
 	Gtk::VBox		m_vBox;
 	Gtk::MenuBar	m_menuBar;
 
+	Glib::ustring	m_current_filename;
+
 	bool 			m_show_edges;
 
 	static const Glib::ustring		APP_NAME;
 	static const Glib::ustring		MENU_ITEM_DATA_KEYNAME;
 
 	static const size_t				MENU_ITEM_MESH_INFO_ID;
+	static const size_t				MENU_ITEM_FILE_EXPORT_POINTS_ID;
 
 public:
 	MainWindow();
@@ -71,6 +74,7 @@ protected:
 
 	// Callbacks
 	void do_file_open_dialog();
+	void on_file_export_vertices();
 	void on_view_show_edges();
 	void on_view_enable_back_face_culling();
 	void on_view_mesh_info();
