@@ -451,10 +451,10 @@ void MainWindow::on_file_export_vertices()
 	// Set default filename
 	std::string fn_str(m_current_filename);
 	size_t lastdot = fn_str.find_last_of(".");
-	fn_str.substr(0, lastdot);
+	fn_str = fn_str.substr(0, lastdot);
 
 	Glib::ustring export_fn = fn_str + ".txt";
-	fcd.set_filename(export_fn);
+	fcd.set_current_name(export_fn);	// set_filename() doesn't work for some reason
 
 	fcd.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_OK);
 	fcd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
