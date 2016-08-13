@@ -38,18 +38,18 @@ using std::shared_ptr;
 using std::unique_ptr;
 
 // Supposedly, this allows lambdas to work with sigc
-namespace sigc
-{
-	template <typename Functor>
-	struct functor_trait<Functor, false>
-	{
-		typedef decltype (::sigc::mem_fun (std::declval<Functor&> (),
-							&Functor::operator())) _intermediate;
-
-		typedef typename _intermediate::result_type result_type;
-		typedef Functor functor_type;
-	};
-};
+//namespace sigc
+//{
+//	template <typename Functor>
+//	struct functor_trait<Functor, false>
+//	{
+//		typedef decltype (::sigc::mem_fun (std::declval<Functor&> (),
+//							&Functor::operator())) _intermediate;
+//
+//		typedef typename _intermediate::result_type result_type;
+//		typedef Functor functor_type;
+//	};
+//};
 
 namespace
 {
@@ -453,7 +453,7 @@ void MainWindow::on_file_export_vertices()
 	size_t lastdot = fn_str.find_last_of(".");
 	fn_str = fn_str.substr(0, lastdot);
 
-	Glib::ustring export_fn = fn_str + ".txt";
+	Glib::ustring export_fn = fn_str + "-points.txt";
 	fcd.set_current_name(export_fn);	// set_filename() doesn't work for some reason
 
 	fcd.add_button(Gtk::Stock::SAVE_AS, Gtk::RESPONSE_OK);
