@@ -1,7 +1,8 @@
 CXX=g++
 MATHSTUFF=$(HOME)/workspace/mathstuff
 STLIMPORT=$(HOME)/workspace/stl-import
-INCLUDE=-I $(MATHSTUFF) -I $(STLIMPORT)
+STLUTIL=$(HOME)/workspace/stlutil
+INCLUDE=-I $(MATHSTUFF) -I $(STLIMPORT) -I $(STLUTIL)
 PKGFLAGS=`pkg-config --cflags gtkmm-2.4 gtkglextmm-1.2`
 PKGLIBS=`pkg-config --libs gtkmm-2.4 gtkglextmm-1.2`
 CFLAGS=-Wall -O3 -funroll-loops -std=c++11
