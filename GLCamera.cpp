@@ -74,7 +74,8 @@ GLCamera& GLCamera::Orbit(const vector3f& axis, float angle_deg)
 GLCamera& GLCamera::Zoom(const float dist)
 {
 	// TODO - this sucks
-	const vector3f zoom_vector(0.0f, 0.0f, dist);
+	vector3f const zoom_vector = vector3f({0.0f, 0.0f, dist});
+
 	const matrix<float> z = matrix<float>::translation(zoom_vector);
 	m_translation = z * m_translation;
 

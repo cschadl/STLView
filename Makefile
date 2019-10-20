@@ -3,10 +3,10 @@ MATHSTUFF=../mathstuff
 STLIMPORT=../stl-import
 STLUTIL=../stlutil
 INCLUDE=-I $(MATHSTUFF) -I $(STLIMPORT) -I $(STLUTIL)
-PKGFLAGS=`pkg-config --cflags gtkmm-2.4 gtkglextmm-1.2`
+PKGFLAGS=`pkg-config --cflags-only-I gtkmm-2.4 gtkglextmm-1.2`
 PKGLIBS=`pkg-config --libs gtkmm-2.4 gtkglextmm-1.2`
-CFLAGS=-Wall -O3 -funroll-loops -std=c++11
-CFLAGS_DEP=-std=c++11
+CFLAGS=-Wall -O3 -std=c++17 -pthread
+CFLAGS_DEP=-std=c++17
 OUTDIR=Release
 EXECUTABLE=stlview
 
@@ -22,7 +22,7 @@ OUTEXE=$(OUTDIR)/$(EXECUTABLE)
 OUTDIR_DEBUG=Debug
 OUTOBJS_DEBUG=$(addprefix $(OUTDIR_DEBUG)/, $(OBJS))
 OUTEXE_DEBUG=$(OUTDIR_DEBUG)/$(EXECUTABLE)
-CFLAGS_DEBUG=-Wall -ggdb3 -std=c++11
+CFLAGS_DEBUG=-Wall -O0 -ggdb3 -std=c++17 -pthread
 CPPFLAGS_DEBUG=-DDEBUG
 
 ################################
