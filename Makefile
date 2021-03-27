@@ -1,7 +1,7 @@
 CXX=g++
-MATHSTUFF=../mathstuff
-STLIMPORT=../stl-import
-STLUTIL=../stlutil
+MATHSTUFF=./submodules/stl-import/submodules/mathstuff
+STLIMPORT=./submodules/stl-import
+STLUTIL=./submodules/stl-import/submodules/stlutil
 INCLUDE=-I $(MATHSTUFF) -I $(STLIMPORT) -I $(STLUTIL)
 PKGFLAGS=`pkg-config --cflags-only-I gtkmm-2.4 gtkglextmm-1.2`
 PKGLIBS=`pkg-config --libs gtkmm-2.4 gtkglextmm-1.2`
