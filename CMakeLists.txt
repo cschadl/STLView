@@ -26,12 +26,18 @@ set(STLUTIL_PATH ${STLIMPORT_PATH}/submodules/stlutil CACHE STRING "")
 add_subdirectory(${STLIMPORT_PATH})
 
 add_executable("stlview" ${STLVIEW_CPP})
+
 target_include_directories("stlview" PRIVATE ${STLIMPORT_PATH}/stl_import)
 target_include_directories("stlview" PUBLIC ${MATHSTUFF_PATH})
 target_include_directories("stlview" PUBLIC ${STLUTIL_PATH})
 target_include_directories("stlview" PUBLIC ${EIGEN3_INCLUDE_DIR})
 target_include_directories("stlview" PRIVATE ${GTKMM_INCLUDE_DIRS})
 target_include_directories("stlview" PRIVATE ${GTKGLEXTMM_INCLUDE_DIRS})
+
+# For some reason if I just add -Wno-deprecated-declarations it complains about an
+# unrecognized command line option
+target_compile_options("stlview" PRIVATE -Wno-deprecated-declarations -Wno-format>)
+
 target_link_libraries("stlview" PUBLIC stl_import ${GTKMM_LIBRARIES} ${GTKGLEXTMM_LIBRARIES})
 
 add_custom_command(
