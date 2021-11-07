@@ -36,7 +36,7 @@ target_include_directories("stlview" PRIVATE ${GTKGLEXTMM_INCLUDE_DIRS})
 
 # For some reason if I just add -Wno-deprecated-declarations it complains about an
 # unrecognized command line option
-target_compile_options("stlview" PRIVATE -Wno-deprecated-declarations -Wno-format>)
+target_compile_options("stlview" PRIVATE -Wno-deprecated-declarations)
 
 target_link_libraries("stlview" PUBLIC stl_import ${GTKMM_LIBRARIES} ${GTKGLEXTMM_LIBRARIES})
 
