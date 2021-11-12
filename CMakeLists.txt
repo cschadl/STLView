@@ -42,3 +42,11 @@ add_custom_command(
     TARGET "stlview" POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/STLView.png ${CMAKE_BINARY_DIR}/STLView.png
 )
+
+install(
+    TARGETS stlview DESTINATION stlview/bin
+)
+
+install(
+    CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/STLView.png ${CMAKE_INSTALL_PREFIX}/stlview/STLView.png)"
+)
