@@ -1,4 +1,3 @@
 [submodule "submodules/stl-import"]
 	path = submodules/stl-import
 	url = git@github.com:cschadl/stl-import.git
-	branch = submodules-cmake
