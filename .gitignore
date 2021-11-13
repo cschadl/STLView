@@ -4,3 +4,6 @@
 .*.swp
 Release/
 Debug/
+cmake-build/
+cmake-install/
+.vscode/
